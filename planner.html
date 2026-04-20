@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusPath — Study Planner</title>
+<link rel="stylesheet" href="vendor/fonts/lexend.css"/>
+<link rel="stylesheet" href="vendor/fonts/gaegu.css"/>
+<script src="vendor/tailwind.js"></script>
+<script src="themes.js"></script>
+<script src="achievements.js"></script>
+<style type="text/tailwindcss">
+  :root{--primary-color:#0d78f2;--background-color:#f0f2f5;--text-primary:#111418;--text-secondary:#60748a;--white:#ffffff;--border-color:#e5e7eb}
+  body{font-family:'Lexend',sans-serif}
+  .slot-cell{min-height:48px;position:relative;cursor:pointer;transition:background .15s}
+  .slot-cell:hover{background:color-mix(in srgb,var(--primary-color) 8%,transparent)}
+  .slot-block{position:absolute;left:2px;right:2px;border-radius:6px;padding:2px 6px;font-size:11px;line-height:1.3;overflow:hidden;cursor:pointer;z-index:1}
+</style>
+</head>
+<body class="bg-[var(--background-color)]">
+<div class="flex min-h-screen">
+  <aside class="w-64 hidden md:flex flex-col gap-4 p-4">
+    <div class="fp-section-card p-4 flex items-center gap-3">
+      <div class="w-8 h-8 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"/></svg>
+      </div>
+      <h1 class="text-[var(--text-primary)] text-2xl font-bold">FocusPath</h1>
+    </div>
+    <div class="flex flex-col gap-3">
+      <button id="btnAddBlock" class="fp-bubble-primary w-full flex items-center gap-3 px-4 py-3 font-medium">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <span>Add Study Block</span>
+      </button>
+    </div>
+    <div class="fp-section-card p-4">
+      <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase mb-2">This Week</h4>
+      <div class="text-sm space-y-1">
+        <div class="flex justify-between text-[var(--text-primary)]"><span>Blocks</span><span id="statBlocks" class="font-semibold">0</span></div>
+        <div class="flex justify-between text-[var(--text-primary)]"><span>Hours</span><span id="statHours" class="font-semibold">0</span></div>
+      </div>
+    </div>
+    <div class="fp-section-card p-4">
+      <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase mb-2">Subjects</h4>
+      <div id="subjectLegend" class="flex flex-col gap-1 text-sm"></div>
+    </div>
+    <div class="mt-auto pt-2"></div>
+  </aside>
+
+  <div class="flex-1 flex flex-col">
+    <script src="icons.js"></script>
+    <div class="px-4 pt-4 flex items-center justify-center">
+      <nav class="flex gap-3">
+        <a href="home.html" title="Home" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-home"/></svg></a>
+        <a href="flashcards.html" title="Flashcards" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-flashcards"/></svg></a>
+        <a href="test.html" title="Tests" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-tests"/></svg></a>
+        <a href="stats.html" title="Stats" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-stats"/></svg></a>
+      </nav>
+    </div>
+
+    <main class="flex-1 p-4 lg:p-6">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <h2 class="text-[var(--text-primary)] text-3xl font-bold">Study Planner</h2>
+        <div class="flex items-center gap-2">
+          <button id="prevWeek" class="fp-bubble px-3 py-1 text-sm">◀</button>
+          <span id="weekLabel" class="text-[var(--text-primary)] font-semibold text-sm"></span>
+          <button id="nextWeek" class="fp-bubble px-3 py-1 text-sm">▶</button>
+          <button id="todayBtn" class="fp-bubble px-3 py-1 text-sm ml-2">Today</button>
+          <button id="btnAddBlockMobile" class="fp-bubble-primary px-3 py-2 text-sm font-medium md:hidden ml-2">+ Block</button>
+        </div>
+      </div>
+
+      <div class="bg-[var(--white)] rounded-xl shadow-lg overflow-auto" style="border:1px solid var(--border-color)">
+        <div id="weekGrid"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Block Modal -->
+<div id="blockModal" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center" style="display:none">
+  <div class="bg-[var(--white)] rounded-2xl shadow-2xl p-6 w-full max-w-md relative" style="border:1px solid var(--border-color)">
+    <button id="blockModalClose" class="absolute top-3 right-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xl">&times;</button>
+    <h3 class="text-[var(--text-primary)] text-lg font-bold mb-4" id="blockModalTitle">Add Study Block</h3>
+    <form id="blockForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Subject *</label>
+        <input id="bfSubject" type="text" required maxlength="60" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm" placeholder="e.g. Mathematics"/>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Day</label>
+          <select id="bfDay" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm">
+            <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Color</label>
+          <select id="bfColor" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm">
+            <option value="#3b82f6">Blue</option><option value="#22c55e">Green</option><option value="#f59e0b">Amber</option><option value="#ef4444">Red</option><option value="#a855f7">Purple</option><option value="#ec4899">Pink</option><option value="#14b8a6">Teal</option><option value="#f97316">Orange</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Start Time</label>
+          <select id="bfStart" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm"></select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">End Time</label>
+          <select id="bfEnd" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm"></select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Notes</label>
+        <input id="bfNotes" type="text" maxlength="100" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm" placeholder="Chapter 5, practice problems"/>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="fp-bubble-primary px-6 py-2 font-medium flex-1">Save</button>
+        <button type="button" id="btnDeleteBlock" class="fp-bubble px-4 py-2 font-medium text-red-500 hidden">Delete</button>
+        <button type="button" id="btnCancelBlock" class="fp-bubble px-4 py-2 font-medium">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORE = 'fpPlanner';
+  function load(){ try { return JSON.parse(localStorage.getItem(STORE)||'[]'); } catch { return []; } }
+  function save(b){ localStorage.setItem(STORE, JSON.stringify(b)); }
+
+  const HOURS = [];
+  for(let h=5;h<=23;h++) HOURS.push(h);
+  const grid = document.getElementById('weekGrid');
+  const modal = document.getElementById('blockModal');
+  const form = document.getElementById('blockForm');
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let weekOffset = 0;
+  let editingId = null;
+
+  // Populate time selects
+  const startSel = document.getElementById('bfStart');
+  const endSel = document.getElementById('bfEnd');
+  for(let h=5;h<=23;h++){
+    for(let m=0;m<60;m+=30){
+      const val = h*60+m;
+      const label = formatTime(val);
+      startSel.innerHTML += `<option value="${val}">${label}</option>`;
+      endSel.innerHTML += `<option value="${val}">${label}</option>`;
+    }
+  }
+  startSel.value = '480'; // 8:00
+  endSel.value = '540'; // 9:00
+
+  function formatTime(mins){
+    const h = Math.floor(mins/60), m = mins%60;
+    const suffix = h>=12?'PM':'AM';
+    return ((h%12)||12)+':'+(m<10?'0':'')+m+' '+suffix;
+  }
+
+  function getWeekStart(offset){
+    const d = new Date();
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate() - d.getDay() + offset*7);
+    return d;
+  }
+
+  function showModal(block, dayIndex){
+    editingId = block ? block.id : null;
+    document.getElementById('blockModalTitle').textContent = block ? 'Edit Study Block' : 'Add Study Block';
+    document.getElementById('bfSubject').value = block?.subject || '';
+    document.getElementById('bfDay').value = block ? block.day : (dayIndex ?? new Date().getDay());
+    document.getElementById('bfColor').value = block?.color || '#3b82f6';
+    startSel.value = block ? block.start : '480';
+    endSel.value = block ? block.end : '540';
+    document.getElementById('bfNotes').value = block?.notes || '';
+    document.getElementById('btnDeleteBlock').classList.toggle('hidden', !block);
+    modal.style.display = '';
+    document.getElementById('bfSubject').focus();
+  }
+  function hideModal(){ modal.style.display = 'none'; editingId = null; }
+
+  document.getElementById('btnAddBlock').addEventListener('click', () => showModal(null));
+  document.getElementById('btnAddBlockMobile').addEventListener('click', () => showModal(null));
+  document.getElementById('blockModalClose').addEventListener('click', hideModal);
+  document.getElementById('btnCancelBlock').addEventListener('click', hideModal);
+  modal.addEventListener('click', e => { if(e.target===modal) hideModal(); });
+
+  document.getElementById('btnDeleteBlock').addEventListener('click', () => {
+    if(!editingId) return;
+    save(load().filter(b=>b.id!==editingId));
+    hideModal(); render();
+  });
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const s = parseInt(startSel.value), en = parseInt(endSel.value);
+    if(en<=s){ alert('End must be after start'); return; }
+    const blocks = load();
+    const data = {
+      id: editingId || 'blk_'+Date.now(),
+      subject: document.getElementById('bfSubject').value.trim(),
+      day: parseInt(document.getElementById('bfDay').value),
+      color: document.getElementById('bfColor').value,
+      start: s, end: en,
+      notes: document.getElementById('bfNotes').value.trim()
+    };
+    if(!data.subject) return;
+    if(editingId){
+      const idx = blocks.findIndex(b=>b.id===editingId);
+      if(idx>=0) blocks[idx] = data;
+    } else { blocks.push(data); }
+    save(blocks); hideModal(); render();
+  });
+
+  document.getElementById('prevWeek').addEventListener('click', () => { weekOffset--; render(); });
+  document.getElementById('nextWeek').addEventListener('click', () => { weekOffset++; render(); });
+  document.getElementById('todayBtn').addEventListener('click', () => { weekOffset=0; render(); });
+
+  function render(){
+    const blocks = load();
+    const ws = getWeekStart(weekOffset);
+    const we = new Date(ws); we.setDate(we.getDate()+6);
+    document.getElementById('weekLabel').textContent =
+      ws.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' – ' + we.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+    const today = new Date();
+    const todayDay = (today.getDay());
+    const isThisWeek = weekOffset === 0;
+
+    // Stats
+    document.getElementById('statBlocks').textContent = blocks.length;
+    const totalMins = blocks.reduce((s,b)=>s+(b.end-b.start),0);
+    document.getElementById('statHours').textContent = (totalMins/60).toFixed(1);
+
+    // Subject legend
+    const subjects = [...new Set(blocks.map(b=>b.subject))];
+    const legend = document.getElementById('subjectLegend');
+    legend.innerHTML = subjects.map(s => {
+      const b = blocks.find(x=>x.subject===s);
+      return `<div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:${b.color}"></span><span class="text-[var(--text-primary)] truncate">${esc(s)}</span></div>`;
+    }).join('');
+
+    // Build grid
+    const minH = 5*60, maxH = 23*60;
+    const slotH = 48; // px per 60min
+    let html = '<div class="grid" style="grid-template-columns:60px repeat(7,1fr)">';
+    // Header row
+    html += '<div class="sticky top-0 bg-[var(--white)] z-10 border-b border-[var(--border-color)]"></div>';
+    for(let d=0;d<7;d++){
+      const dayDate = new Date(ws); dayDate.setDate(dayDate.getDate()+d);
+      const isToday = isThisWeek && d === todayDay;
+      html += `<div class="sticky top-0 bg-[var(--white)] z-10 border-b border-l border-[var(--border-color)] text-center py-2">
+        <div class="text-[var(--text-secondary)] text-xs">${DAYS[d]}</div>
+        <div class="text-sm font-semibold ${isToday?'text-[var(--primary-color)]':'text-[var(--text-primary)]'}">${dayDate.getDate()}</div>
+      </div>`;
+    }
+
+    // Time rows
+    for(let h=5;h<=22;h++){
+      const mins = h*60;
+      html += `<div class="text-[var(--text-secondary)] text-xs text-right pr-2 border-b border-[var(--border-color)]" style="height:${slotH}px;line-height:${slotH}px">${formatTime(mins)}</div>`;
+      for(let d=0;d<7;d++){
+        html += `<div class="slot-cell border-l border-b border-[var(--border-color)]" data-day="${d}" data-hour="${h}" style="height:${slotH}px">`;
+        // Place blocks
+        blocks.filter(b=>b.day===d && b.start<(h+1)*60 && b.end>h*60).forEach(b => {
+          if(b.start >= mins && b.start < mins+60){
+            const top = (b.start-mins)/60 * slotH;
+            const height = Math.min((b.end-b.start)/60*slotH, (maxH-b.start)/60*slotH);
+            html += `<div class="slot-block" data-block="${b.id}" style="top:${top}px;height:${height}px;background:${b.color}20;border-left:3px solid ${b.color};color:${b.color}">
+              <div class="font-semibold truncate">${esc(b.subject)}</div>
+              ${height>30?'<div class="opacity-70 truncate">'+formatTime(b.start)+'–'+formatTime(b.end)+'</div>':''}
+            </div>`;
+          }
+        });
+        html += '</div>';
+      }
+    }
+    html += '</div>';
+    grid.innerHTML = html;
+
+    // Wire clicks
+    grid.querySelectorAll('.slot-cell').forEach(cell => {
+      cell.addEventListener('click', e => {
+        if(e.target.closest('.slot-block')) return;
+        const day = parseInt(cell.dataset.day);
+        const hour = parseInt(cell.dataset.hour);
+        startSel.value = hour*60;
+        endSel.value = (hour+1)*60;
+        showModal(null, day);
+      });
+    });
+    grid.querySelectorAll('.slot-block').forEach(el => {
+      el.addEventListener('click', () => {
+        const b = blocks.find(x=>x.id===el.dataset.block);
+        if(b) showModal(b);
+      });
+    });
+  }
+
+  function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  render();
+})();
+</script>
+<script src="tools-drawer.js"></script>
+</body></html>

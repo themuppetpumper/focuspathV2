@@ -1,0 +1,29 @@
+<div id="cardRunner" class="fc-study-wrapper space-y-4">
+  <div id="fcMeta" class="flex items-center justify-between text-[var(--text-secondary)] text-xs tracking-wide uppercase"></div>
+  <div id="fcProgress" class="fc-progress"></div>
+  <div class="relative">
+    <div id="fcStage" class="fc-card-stage"></div>
+    <div id="fcHintPop" class="fc-hint-pop" style="display:none;"></div>
+  </div>
+  <div id="fcConfidence" class="fc-confidence" style="display:none;">
+    <button id="btnKnow" class="fc-conf-btn know">Know It <span class="fc-kbd">1</span></button>
+    <button id="btnKinda" class="fc-conf-btn kinda">Kinda <span class="fc-kbd">2</span></button>
+    <button id="btnNoclue" class="fc-conf-btn noclue">No Clue <span class="fc-kbd">3</span></button>
+  </div>
+  <div class="flex items-center justify-center gap-4">
+    <button id="btnPrevCard" class="px-4 py-2 rounded-md bg-gray-200 text-[var(--text-primary)] disabled:opacity-40">Previous</button>
+    <button id="btnHint" class="px-4 py-2 rounded-md bg-amber-500 text-white">Hint</button>
+    <button id="btnNextCard" class="px-4 py-2 rounded-md bg-[var(--primary-color)] text-white">Next</button>
+    <button id="btnFinishSession" class="px-4 py-2 rounded-md bg-emerald-600 text-white hidden">Finish</button>
+  </div>
+  <div class="flex justify-center"><button id="btnReturnSet" class="text-xs text-[var(--text-secondary)] underline">Return to Set</button></div>
+  <p class="text-center text-[var(--text-secondary)] text-xs">
+    <span class="fc-kbd">Space</span> flip &middot;
+    <span class="fc-kbd">&larr;</span><span class="fc-kbd">&rarr;</span> navigate &middot;
+    <span class="fc-kbd">1</span><span class="fc-kbd">2</span><span class="fc-kbd">3</span> rate &middot;
+    <span class="fc-kbd">S</span> star &middot;
+    <span class="fc-kbd">H</span> hint
+  </p>
+</div>
+</body>
+</html>

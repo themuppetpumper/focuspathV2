@@ -1,0 +1,149 @@
+<script src="themes.js"></script>
+<style>
+  /* Modern builder inputs follow global theme styles */
+  .builder-scope input[type="text"],
+  .builder-scope textarea,
+  .builder-scope select { color: var(--text-primary) !important; background: var(--white) !important; }
+  /* Dark theme: increase contrast */
+  [data-theme="dark"] .builder-scope input[type="text"],
+  [data-theme="dark"] .builder-scope textarea,
+  [data-theme="dark"] .builder-scope select { color: #ffffff !important; background: #1f2937 !important; border-color: #334155 !important; }
+  [data-theme="dark"] #testSubject option { color:#fff !important; background:#1f2937; }
+  #testName::placeholder, #testDesc::placeholder { color: var(--text-secondary) !important; opacity:0.7; }
+  [data-theme="dark"] #testName::placeholder, [data-theme="dark"] #testDesc::placeholder { color:#94a3b8 !important; opacity:0.6; }
+  .builder-scope .btn { transition: all .15s ease; font-weight: 500; }
+  .builder-scope .btn:hover { opacity: .9; }
+  .builder-scope .btn-primary { background: var(--primary-color); color: #fff; }
+  .builder-scope .btn-secondary { background: #e5e7eb; color: var(--text-primary); }
+
+  /* Question list items */
+  .q-item { transition: all .15s ease; border: 1.5px solid transparent; }
+  .q-item:hover { border-color: color-mix(in srgb, var(--primary-color) 30%, transparent); background: color-mix(in srgb, var(--primary-color) 4%, white); }
+  .q-item.q-active { border-color: var(--primary-color); background: color-mix(in srgb, var(--primary-color) 6%, white); }
+  [data-theme="dark"] .q-item:hover { background: #1e293b; }
+  [data-theme="dark"] .q-item.q-active { background: #1e293b; }
+
+  /* Type badges */
+  .q-badge { display:inline-block; padding:1px 8px; border-radius:9999px; font-size:10px; font-weight:600; letter-spacing:.3px; text-transform:uppercase; line-height:1.6; }
+  .q-badge-mc { background:#dbeafe; color:#1d4ed8; }
+  .q-badge-tf { background:#fef3c7; color:#92400e; }
+  .q-badge-text { background:#d1fae5; color:#065f46; }
+  .q-badge-sa { background:#ede9fe; color:#5b21b6; }
+  .q-badge-match { background:#fce7f3; color:#9d174d; }
+  [data-theme="dark"] .q-badge-mc { background:#1e3a5f; color:#93c5fd; }
+  [data-theme="dark"] .q-badge-tf { background:#451a03; color:#fcd34d; }
+  [data-theme="dark"] .q-badge-text { background:#064e3b; color:#6ee7b7; }
+  [data-theme="dark"] .q-badge-sa { background:#2e1065; color:#c4b5fd; }
+  [data-theme="dark"] .q-badge-match { background:#831843; color:#f9a8d4; }
+
+  /* Editor sections */
+  .editor-section { padding: 12px 16px; border-radius: 10px; background: color-mix(in srgb, var(--primary-color) 2%, var(--white)); border: 1px solid var(--border-color, #e5e7eb); }
+  [data-theme="dark"] .editor-section { background: #111827; }
+
+  /* Sticky save bar */
+  .sticky-save { position:sticky; bottom:0; background:var(--white); border-top:1px solid var(--border-color,#e5e7eb); padding:10px 0 2px; z-index:2; }
+  [data-theme="dark"] .sticky-save { background:#1f2937; }
+
+  /* Option row hover */
+  .opt-row { transition: all .15s ease; }
+  .opt-row:hover { background: color-mix(in srgb, var(--primary-color) 4%, transparent); border-radius: 6px; }
+
+  /* Scrollbar polish */
+  .builder-scope ::-webkit-scrollbar { width:6px; }
+  .builder-scope ::-webkit-scrollbar-track { background:transparent; }
+  .builder-scope ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+  .builder-scope ::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
+  [data-theme="dark"] .builder-scope ::-webkit-scrollbar-thumb { background:#475569; }
+</style>
+<div class="builder-scope">
+<!-- Test Details (compact header bar) -->
+<div class="bg-white rounded-xl shadow-sm p-5 mb-5 border border-[var(--border-color)]">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-lg font-bold text-[var(--text-primary)]">Test Details</h3>
+    <button id="btnSaveTest" class="btn btn-primary px-5 py-2 rounded-lg shadow-sm text-sm">
+      Save Test
+    </button>
+  </div>
+  <div class="grid md:grid-cols-3 gap-4 text-sm">
+    <div>
+      <label class="block font-medium text-[var(--text-primary)] mb-1">Subject</label>
+      <div class="flex gap-2">
+        <select id="testSubject" class="w-full rounded-lg border-gray-300 p-2 text-sm">
+          <option value="" disabled selected>Select a Subject</option>
+          <option value="__create">Create New…</option>
+        </select>
+        <div class="flex flex-col gap-1">
+          <button type="button" id="btnManageSubjectsTest" class="px-2 py-1 text-[10px] rounded border border-[var(--border-color)] hover:bg-gray-100">Manage</button>
+          <button type="button" id="btnRemoveSubjectTest" class="px-2 py-1 text-[10px] rounded border border-red-300 text-red-600 hover:bg-red-50 hidden">Remove</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <label class="block font-medium text-[var(--text-primary)] mb-1">Test Name</label>
+      <input id="testName" type="text" class="w-full rounded-lg border-gray-300 p-2 text-sm" placeholder="e.g. History 101" />
+    </div>
+    <div>
+      <label class="block font-medium text-[var(--text-primary)] mb-1">Description</label>
+      <input id="testDesc" type="text" class="w-full rounded-lg border-gray-300 p-2 text-sm" placeholder="Short description..." />
+    </div>
+  </div>
+  <div class="flex items-center gap-5 mt-3 flex-wrap">
+    <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
+      <input type="checkbox" id="chkShuffleQuestions" class="rounded accent-[var(--primary-color)]"/>
+      <span class="text-[var(--text-secondary)]">Shuffle Questions</span>
+    </label>
+    <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
+      <input type="checkbox" id="chkShuffleOptions" class="rounded accent-[var(--primary-color)]"/>
+      <span class="text-[var(--text-secondary)]">Shuffle Options</span>
+    </label>
+  </div>
+</div>
+
+<!-- Main Layout -->
+<div class="grid lg:grid-cols-3 gap-5">
+  <!-- Left Panel: Question List -->
+  <div class="bg-white rounded-xl shadow-sm border border-[var(--border-color)] p-4 flex flex-col" style="min-height:500px;max-height:calc(100vh - 280px)">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-base font-bold text-[var(--text-primary)]">Questions</h3>
+      <div class="flex gap-2">
+        <button id="btnAddQuestion" class="px-3 py-1.5 text-xs rounded-lg bg-[var(--primary-color)] text-white shadow-sm font-medium">+ Add</button>
+        <button id="btnBulkAddQuestions" class="px-3 py-1.5 text-xs rounded-lg bg-gray-100 text-[var(--text-secondary)] hover:bg-gray-200 font-medium border border-[var(--border-color)]">Bulk</button>
+      </div>
+    </div>
+    <div id="questionsList" class="flex-1 overflow-y-auto space-y-1.5 pr-1 text-sm">
+      <div class="text-[var(--text-secondary)] italic p-4 text-center">No questions yet. Use "+ Add".</div>
+    </div>
+    <div class="mt-2 pt-2 border-t border-[var(--border-color)] text-center">
+      <span id="questionCount" class="text-xs text-[var(--text-secondary)]">0 questions</span>
+    </div>
+  </div>
+
+  <!-- Right Panel: Active Question Editor -->
+  <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-[var(--border-color)] p-5 flex flex-col" style="min-height:500px;max-height:calc(100vh - 280px)">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-base font-bold text-[var(--text-primary)]">Question Editor</h3>
+      <div class="flex gap-1.5">
+        <button id="btnMoveUpQuestion" class="w-7 h-7 flex items-center justify-center text-xs rounded-lg border border-[var(--border-color)] hover:bg-gray-100 disabled:opacity-30 transition-opacity" title="Move Up">↑</button>
+        <button id="btnMoveDownQuestion" class="w-7 h-7 flex items-center justify-center text-xs rounded-lg border border-[var(--border-color)] hover:bg-gray-100 disabled:opacity-30 transition-opacity" title="Move Down">↓</button>
+        <button id="btnDeleteQuestion" class="w-7 h-7 flex items-center justify-center text-xs rounded-lg border border-red-200 text-red-500 hover:bg-red-50 disabled:opacity-30 transition-opacity" title="Delete">✕</button>
+      </div>
+    </div>
+
+    <div id="activeQuestion" class="flex-1 overflow-y-auto pr-1 space-y-4">
+      <div class="text-[var(--text-secondary)] italic text-center py-12">
+        No active question. Click "+ Add" to begin editing.
+      </div>
+    </div>
+
+    <!-- Sticky save question bar -->
+    <div class="sticky-save flex justify-end gap-3">
+      <button id="btnSaveQuestion" class="btn px-4 py-2 rounded-lg bg-green-600 text-white text-sm shadow-sm">
+        Save Question
+      </button>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

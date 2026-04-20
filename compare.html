@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusPath — Pre/Post Compare</title>
+<link rel="stylesheet" href="vendor/fonts/lexend.css"/>
+<link rel="stylesheet" href="vendor/fonts/gaegu.css"/>
+<script src="vendor/tailwind.js"></script>
+<script src="themes.js"></script>
+<script src="achievements.js"></script>
+<style type="text/tailwindcss">
+  :root{--primary-color:#0d78f2;--background-color:#f0f2f5;--text-primary:#111418;--text-secondary:#60748a;--white:#ffffff;--border-color:#e5e7eb}
+  body{font-family:'Lexend',sans-serif}
+  .bar-fill{height:100%;border-radius:4px;transition:width .5s ease}
+</style>
+</head>
+<body class="bg-[var(--background-color)]">
+<div class="flex min-h-screen">
+  <aside class="w-64 hidden md:flex flex-col gap-4 p-4">
+    <div class="fp-section-card p-4 flex items-center gap-3">
+      <div class="w-8 h-8 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"/></svg>
+      </div>
+      <h1 class="text-[var(--text-primary)] text-2xl font-bold">FocusPath</h1>
+    </div>
+    <div class="fp-section-card p-4">
+      <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase mb-2">Select Test</h4>
+      <select id="testSelect" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm mb-3">
+        <option value="">— Choose a test —</option>
+      </select>
+      <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase mb-2 mt-3">Compare</h4>
+      <div class="space-y-2">
+        <div>
+          <label class="text-xs text-[var(--text-secondary)]">Pre-Test (Attempt)</label>
+          <select id="preSelect" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-2 py-1.5 text-sm"></select>
+        </div>
+        <div>
+          <label class="text-xs text-[var(--text-secondary)]">Post-Test (Attempt)</label>
+          <select id="postSelect" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-2 py-1.5 text-sm"></select>
+        </div>
+      </div>
+      <button id="btnCompare" class="fp-bubble-primary w-full mt-3 py-2 text-sm font-medium">Compare</button>
+    </div>
+    <div class="mt-auto pt-2"></div>
+  </aside>
+
+  <div class="flex-1 flex flex-col">
+    <script src="icons.js"></script>
+    <div class="px-4 pt-4 flex items-center justify-center">
+      <nav class="flex gap-3">
+        <a href="home.html" title="Home" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-home"/></svg></a>
+        <a href="flashcards.html" title="Flashcards" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-flashcards"/></svg></a>
+        <a href="test.html" title="Tests" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-tests"/></svg></a>
+        <a href="stats.html" title="Stats" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-stats"/></svg></a>
+      </nav>
+    </div>
+
+    <main class="flex-1 p-6 lg:p-8">
+      <h2 class="text-[var(--text-primary)] text-3xl font-bold mb-6">Pre/Post Comparison</h2>
+
+      <!-- Mobile controls -->
+      <div class="md:hidden bg-[var(--white)] rounded-xl shadow p-4 mb-4" style="border:1px solid var(--border-color)">
+        <div class="space-y-2">
+          <select id="testSelectM" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm">
+            <option value="">— Choose a test —</option>
+          </select>
+          <div class="grid grid-cols-2 gap-2">
+            <select id="preSelectM" class="rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-2 py-1.5 text-sm"></select>
+            <select id="postSelectM" class="rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-2 py-1.5 text-sm"></select>
+          </div>
+          <button id="btnCompareM" class="fp-bubble-primary w-full py-2 text-sm font-medium">Compare</button>
+        </div>
+      </div>
+
+      <div id="compareContent"></div>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  function loadAttempts(){ try { return JSON.parse(localStorage.getItem('testAttempts')||'[]'); } catch { return []; } }
+  function loadTests(){ try { return JSON.parse(localStorage.getItem('tests')||'[]'); } catch { return []; } }
+
+  const attempts = loadAttempts();
+  const tests = loadTests();
+  const content = document.getElementById('compareContent');
+
+  // Group attempts by testId
+  const grouped = {};
+  attempts.forEach(a => {
+    const key = String(a.testId);
+    if(!grouped[key]) grouped[key] = [];
+    grouped[key].push(a);
+  });
+  // Sort each group by date
+  Object.values(grouped).forEach(arr => arr.sort((a,b) => new Date(a.date)-new Date(b.date)));
+
+  // Populate test selects
+  const testIds = Object.keys(grouped).filter(id => grouped[id].length >= 2);
+  function populateTestSelect(sel){
+    sel.innerHTML = '<option value="">— Choose a test —</option>';
+    testIds.forEach(id => {
+      const name = grouped[id][0].testName || 'Test #'+id;
+      sel.innerHTML += `<option value="${id}">${esc(name)} (${grouped[id].length} attempts)</option>`;
+    });
+  }
+  ['testSelect','testSelectM'].forEach(id => populateTestSelect(document.getElementById(id)));
+
+  function populateAttemptSelects(testId){
+    const arr = grouped[testId] || [];
+    ['preSelect','preSelectM'].forEach(id => {
+      const sel = document.getElementById(id);
+      sel.innerHTML = '';
+      arr.forEach((a,i) => {
+        const d = new Date(a.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const pct = Math.round(a.score/a.total*100);
+        sel.innerHTML += `<option value="${i}">#${i+1} — ${d} (${pct}%)</option>`;
+      });
+    });
+    ['postSelect','postSelectM'].forEach(id => {
+      const sel = document.getElementById(id);
+      sel.innerHTML = '';
+      arr.forEach((a,i) => {
+        const d = new Date(a.date).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const pct = Math.round(a.score/a.total*100);
+        sel.innerHTML += `<option value="${i}">#${i+1} — ${d} (${pct}%)</option>`;
+      });
+      sel.value = String(arr.length-1);
+    });
+  }
+
+  function syncSelects(sourcePrefix){
+    const testId = document.getElementById(sourcePrefix==='M'?'testSelectM':'testSelect').value;
+    const pre = document.getElementById(sourcePrefix==='M'?'preSelectM':'preSelect').value;
+    const post = document.getElementById(sourcePrefix==='M'?'postSelectM':'postSelect').value;
+    // Sync to other set
+    const otherPrefix = sourcePrefix==='M'?'':'M';
+    document.getElementById(otherPrefix?'testSelect'+otherPrefix:'testSelect').value = testId;
+    document.getElementById(otherPrefix?'preSelect'+otherPrefix:'preSelect').value = pre;
+    document.getElementById(otherPrefix?'postSelect'+otherPrefix:'postSelect').value = post;
+  }
+
+  ['testSelect','testSelectM'].forEach(id => {
+    document.getElementById(id).addEventListener('change', function(){
+      const val = this.value;
+      // Sync other select
+      document.getElementById(id==='testSelect'?'testSelectM':'testSelect').value = val;
+      if(val) populateAttemptSelects(val);
+    });
+  });
+
+  function compare(sourcePrefix){
+    const testId = document.getElementById(sourcePrefix==='M'?'testSelectM':'testSelect').value;
+    if(!testId){ content.innerHTML = ''; return; }
+    syncSelects(sourcePrefix);
+    const arr = grouped[testId];
+    const preIdx = parseInt(document.getElementById(sourcePrefix==='M'?'preSelectM':'preSelect').value);
+    const postIdx = parseInt(document.getElementById(sourcePrefix==='M'?'postSelectM':'postSelect').value);
+    const pre = arr[preIdx], post = arr[postIdx];
+    if(!pre || !post) return;
+
+    const prePct = Math.round(pre.score/pre.total*100);
+    const postPct = Math.round(post.score/post.total*100);
+    const delta = postPct - prePct;
+    const timeDelta = post.timeTaken - pre.timeTaken;
+
+    let html = '';
+
+    // Header cards
+    html += `<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-[var(--white)] rounded-xl shadow p-5 text-center" style="border:1px solid var(--border-color)">
+        <div class="text-[var(--text-secondary)] text-xs uppercase mb-1">Score Change</div>
+        <div class="text-4xl font-bold ${delta>0?'text-green-500':delta<0?'text-red-500':'text-[var(--text-primary)]'}">${delta>0?'+':''}${delta}%</div>
+        <div class="text-[var(--text-secondary)] text-sm mt-1">${prePct}% → ${postPct}%</div>
+      </div>
+      <div class="bg-[var(--white)] rounded-xl shadow p-5 text-center" style="border:1px solid var(--border-color)">
+        <div class="text-[var(--text-secondary)] text-xs uppercase mb-1">Questions Improved</div>
+        <div class="text-4xl font-bold text-[var(--primary-color)]">${countImproved(pre,post)}</div>
+        <div class="text-[var(--text-secondary)] text-sm mt-1">of ${pre.total} questions</div>
+      </div>
+      <div class="bg-[var(--white)] rounded-xl shadow p-5 text-center" style="border:1px solid var(--border-color)">
+        <div class="text-[var(--text-secondary)] text-xs uppercase mb-1">Time Change</div>
+        <div class="text-4xl font-bold ${timeDelta<0?'text-green-500':timeDelta>0?'text-amber-500':'text-[var(--text-primary)]'}">${timeDelta<0?'':'+'}${formatDuration(timeDelta)}</div>
+        <div class="text-[var(--text-secondary)] text-sm mt-1">${formatDuration(pre.timeTaken)} → ${formatDuration(post.timeTaken)}</div>
+      </div>
+    </div>`;
+
+    // Score bars comparison
+    html += `<div class="bg-[var(--white)] rounded-xl shadow p-5 mb-4" style="border:1px solid var(--border-color)">
+      <h3 class="text-[var(--text-primary)] font-bold mb-4">Score Comparison</h3>
+      <div class="space-y-3">
+        <div>
+          <div class="flex justify-between text-sm mb-1"><span class="text-[var(--text-secondary)]">Pre-Test</span><span class="font-semibold text-[var(--text-primary)]">${pre.score}/${pre.total} (${prePct}%)</span></div>
+          <div class="w-full h-4 bg-[var(--background-color)] rounded-full overflow-hidden"><div class="bar-fill" style="width:${prePct}%;background:#94a3b8"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-sm mb-1"><span class="text-[var(--text-secondary)]">Post-Test</span><span class="font-semibold text-[var(--text-primary)]">${post.score}/${post.total} (${postPct}%)</span></div>
+          <div class="w-full h-4 bg-[var(--background-color)] rounded-full overflow-hidden"><div class="bar-fill" style="width:${postPct}%;background:var(--primary-color)"></div></div>
+        </div>
+      </div>
+    </div>`;
+
+    // Per-question breakdown
+    const test = tests.find(t => String(t.id) === testId);
+    if(test && test.questions){
+      html += `<div class="bg-[var(--white)] rounded-xl shadow p-5" style="border:1px solid var(--border-color)">
+        <h3 class="text-[var(--text-primary)] font-bold mb-4">Question-by-Question</h3>
+        <div class="overflow-x-auto"><table class="w-full text-sm">
+          <thead><tr class="border-b border-[var(--border-color)]">
+            <th class="text-left py-2 text-[var(--text-secondary)] font-medium">#</th>
+            <th class="text-left py-2 text-[var(--text-secondary)] font-medium">Question</th>
+            <th class="text-center py-2 text-[var(--text-secondary)] font-medium">Pre</th>
+            <th class="text-center py-2 text-[var(--text-secondary)] font-medium">Post</th>
+            <th class="text-center py-2 text-[var(--text-secondary)] font-medium">Change</th>
+          </tr></thead><tbody>`;
+
+      test.questions.forEach((q,i) => {
+        const preCorrect = isCorrect(pre.answers?.[i], q);
+        const postCorrect = isCorrect(post.answers?.[i], q);
+        let change = '—', changeClass = 'text-[var(--text-secondary)]';
+        if(!preCorrect && postCorrect){ change = '✅ Fixed'; changeClass = 'text-green-500 font-semibold'; }
+        else if(preCorrect && !postCorrect){ change = '❌ Regressed'; changeClass = 'text-red-500 font-semibold'; }
+        else if(preCorrect && postCorrect){ change = '✓ Kept'; changeClass = 'text-[var(--text-secondary)]'; }
+        else { change = '✗ Still wrong'; changeClass = 'text-amber-500'; }
+
+        const qText = (q.question || q.text || '').substring(0,60) + ((q.question||q.text||'').length>60?'...':'');
+        html += `<tr class="border-b border-[var(--border-color)]">
+          <td class="py-2 text-[var(--text-secondary)]">${i+1}</td>
+          <td class="py-2 text-[var(--text-primary)]">${esc(qText)}</td>
+          <td class="py-2 text-center">${preCorrect?'✅':'❌'}</td>
+          <td class="py-2 text-center">${postCorrect?'✅':'❌'}</td>
+          <td class="py-2 text-center ${changeClass}">${change}</td>
+        </tr>`;
+      });
+      html += '</tbody></table></div></div>';
+    }
+
+    // All attempts timeline
+    html += `<div class="bg-[var(--white)] rounded-xl shadow p-5 mt-4" style="border:1px solid var(--border-color)">
+      <h3 class="text-[var(--text-primary)] font-bold mb-4">All Attempts</h3>
+      <div class="flex items-end gap-2 h-40">`;
+    const maxScore = 100;
+    grouped[testId].forEach((a,i) => {
+      const pct = Math.round(a.score/a.total*100);
+      const isPre = i===preIdx, isPost = i===postIdx;
+      const bg = isPre ? '#94a3b8' : isPost ? 'var(--primary-color)' : 'var(--border-color)';
+      html += `<div class="flex-1 flex flex-col items-center gap-1">
+        <span class="text-xs font-semibold text-[var(--text-primary)]">${pct}%</span>
+        <div class="w-full rounded-t" style="height:${pct*1.4}px;background:${bg}"></div>
+        <span class="text-[10px] text-[var(--text-secondary)]">#${i+1}</span>
+      </div>`;
+    });
+    html += '</div></div>';
+
+    content.innerHTML = html;
+  }
+
+  function isCorrect(answer, question){
+    if(answer === undefined || answer === null) return false;
+    const correct = question.correctAnswer ?? question.correct ?? 0;
+    return String(answer) === String(correct);
+  }
+
+  function countImproved(pre,post){
+    const test = tests.find(t=>String(t.id)===String(pre.testId));
+    if(!test || !test.questions) return '?';
+    let count = 0;
+    test.questions.forEach((q,i) => {
+      if(!isCorrect(pre.answers?.[i],q) && isCorrect(post.answers?.[i],q)) count++;
+    });
+    return count;
+  }
+
+  function formatDuration(sec){
+    const abs = Math.abs(sec);
+    const m = Math.floor(abs/60), s = abs%60;
+    return (sec<0?'-':'')+(m>0?m+'m ':'')+ s+'s';
+  }
+
+  function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  // Show empty state if not enough data
+  if(!testIds.length){
+    content.innerHTML = `<div class="text-center py-20">
+      <div class="text-5xl mb-4">📊</div>
+      <h3 class="text-[var(--text-primary)] text-xl font-semibold mb-2">Not enough data yet</h3>
+      <p class="text-[var(--text-secondary)] text-sm mb-4">Take the same test at least twice to compare your<br>pre-test and post-test performance.</p>
+      <a href="test.html" class="fp-bubble-primary px-6 py-2 font-medium inline-block">Go to Tests</a>
+    </div>`;
+  }
+
+  document.getElementById('btnCompare').addEventListener('click', () => compare(''));
+  document.getElementById('btnCompareM').addEventListener('click', () => compare('M'));
+})();
+</script>
+<script src="tools-drawer.js"></script>
+</body></html>

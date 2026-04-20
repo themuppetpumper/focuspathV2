@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FocusPath - Study Application</title>
+<link rel="stylesheet" href="vendor/fonts/lexend.css"/>
+<link rel="stylesheet" href="vendor/fonts/gaegu.css"/>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0d78f2" />
+<script src="vendor/tailwind.js"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #0d78f2;
+        --background-color: #f0f2f5;
+        --text-primary: #111418;
+        --text-secondary: #60748a;
+        --white: #ffffff;
+        --border-color: #e5e7eb;
+      }
+      body {
+        font-family: 'Lexend', sans-serif;
+      }
+      .hover-bg-primary-light:hover {
+        background-color: #e6f2ff;
+      }
+      .group:focus .group-focus\:block {
+        display: block;
+      }
+      .group:focus .group-focus\:hidden {
+        display: none;
+      }
+      /* Collapsible sidebar nav animation */
+      #sidebarNav { transition: padding .35s ease; }
+      #sidebarNav a { position:relative; opacity:1; transform:translateY(0); box-shadow:0 0 0 rgba(0,0,0,0); transition:transform .5s cubic-bezier(.22,1.25,.36,1), opacity .45s ease, box-shadow .45s ease; will-change:transform,opacity,box-shadow; }
+      #sidebarNav.nav-collapsed { pointer-events:none; }
+      #sidebarNav.nav-collapsed a { opacity:0; transform:translateY(-18px); }
+      #sidebarNav.nav-expanded a { opacity:1; transform:translateY(0); }
+      #sidebarNav.nav-expanded a { box-shadow:0 4px 10px -4px rgba(0,0,0,0.08); }
+      @media (prefers-reduced-motion: reduce) {
+        #sidebarNav a, #sidebarNav.nav-collapsed a { transition:none; transform:none !important; opacity:1 !important; }
+      }
+    </style>
+</head>
+<body class="bg-[var(--background-color)]">
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.style.opacity = '0';
+    document.body.style.transition = 'opacity 0.7s cubic-bezier(.23,1.01,.32,1)';
+    setTimeout(function() {
+      document.body.style.opacity = '1';
+    }, 30);
+    // Personalize welcome message (single-user model)
+    var user = JSON.parse(localStorage.getItem('fpTestUser') || '{}');
+    var header = document.getElementById('welcomeHeader');
+    if(user.name && header) {
+      header.textContent = 'Welcome ' + (user.rank ? user.rank + ' ' : '') + user.name + '!';
+    }
+    // Single-user model: no logout action
+  });
+</script>
+<div class="flex min-h-screen">
+<aside class="w-64 flex-col justify-between hidden md:flex">
+<div class="p-4 flex flex-col h-full gap-3">
+<button id="fpBrandToggle" class="fp-section-card flex items-center gap-3 mb-2 w-full text-left focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] rounded-xl transition-colors" aria-controls="sidebarNav" aria-expanded="false">
+  <div class="w-8 h-8 text-[var(--primary-color)]" id="fpBrandLogo">
+    <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+    </svg>
+  </div>
+  <span class="text-[var(--text-primary)] text-2xl font-bold flex-1" id="fpBrandText">FocusPath</span>
+  <span id="fpBrandChevron" class="transition-transform text-[var(--text-secondary)]" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15.5 6 9.5l1.4-1.4L12 12.7l4.6-4.6L18 9.5l-6 6Z"/></svg>
+  </span>
+</button>
+<nav class="flex flex-col gap-3 nav-collapsed" id="sidebarNav" style="visibility:hidden">
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="flashcards.html"><svg class="fp-icon" aria-hidden="true"><use href="#ico-flashcards"></use></svg><span>Flash Cards</span></a>
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="test.html"><svg class="fp-icon" aria-hidden="true"><use href="#ico-tests"></use></svg><span>Tests</span></a>
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="stats.html"><svg class="fp-icon" aria-hidden="true"><use href="#ico-stats"></use></svg><span>Statistics</span></a>
+  <div class="text-[var(--text-secondary)] text-xs font-semibold uppercase mt-2 mb-1 px-1">Tools</div>
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="pomodoro.html"><span>⏱️</span><span>Pomodoro Timer</span></a>
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="goals.html"><span>🎯</span><span>Goal Tracker</span></a>
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="journal.html"><span>🧠</span><span>Recall Journal</span></a>
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="planner.html"><span>📅</span><span>Study Planner</span></a>
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="habits.html"><span>✅</span><span>Habit Tracker</span></a>
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="notes.html"><span>📝</span><span>Cornell Notes</span></a>
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="compare.html"><span>📊</span><span>Pre/Post Compare</span></a>
+  <a class="fp-bubble flex items-center gap-3 px-4 py-3 font-medium transition-colors" href="help.html"><span>❓</span><span>Help & Guide</span></a>
+</nav>
+<div class="mt-4">
+  <div class="fp-section-card">
+    <h3 class="text-[var(--text-primary)] text-xs font-semibold mb-2 flex items-center gap-1.5">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[var(--primary-color)]"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Upcoming Holidays
+    </h3>
+    <div id="upcomingHolidaysList" class="space-y-2 overflow-auto pr-1" style="max-height:200px;"></div>
+  </div>
+</div>
+  <div class="mt-auto pt-2"></div>
+</div>
+</aside>
+<div class="flex-1 flex flex-col">
+  <script src="icons.js"></script>
+  <script>
+    // Sidebar nav drawer toggle with persistence & first-visit auto-expand
+    (function(){
+      const STORAGE_KEY = 'fpSidebarExpanded';
+      const SEEN_KEY = 'fpSidebarSeen';
+      const toggleBtn = document.getElementById('fpBrandToggle');
+      const nav = document.getElementById('sidebarNav');
+      const chevron = document.getElementById('fpBrandChevron');
+      if(!toggleBtn || !nav) return;
+      const links = Array.from(nav.querySelectorAll('a'));
+      const firstVisit = !localStorage.getItem(SEEN_KEY);
+      if(firstVisit){ localStorage.setItem(SEEN_KEY,'1'); }
+      let expanded;
+      if(firstVisit){
+        expanded = true; // auto-expand first visit
+        localStorage.setItem(STORAGE_KEY,'1');
+      } else {
+        expanded = localStorage.getItem(STORAGE_KEY) === '1';
+      }
+      // Prepare initial state silently
+      nav.classList.toggle('nav-expanded', expanded);
+      nav.classList.toggle('nav-collapsed', !expanded);
+      toggleBtn.setAttribute('aria-expanded', expanded ? 'true':'false');
+      if(chevron){ chevron.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)'; }
+      links.forEach((l,i)=>{
+        l.tabIndex = expanded ? 0 : -1;
+        // No initial delays; we add delays only on subsequent transitions
+        l.style.transitionDelay = '0ms';
+      });
+      // Reveal nav (avoid flicker)
+      nav.style.visibility='visible';
+      function applyState(){
+        toggleBtn.setAttribute('aria-expanded', expanded ? 'true':'false');
+        nav.classList.toggle('nav-expanded', expanded);
+        nav.classList.toggle('nav-collapsed', !expanded);
+        if(chevron){ chevron.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)'; }
+        if(expanded){
+          links.forEach((l,i)=>{ l.style.transitionDelay = (i*60)+'ms'; l.tabIndex=0; });
+        } else {
+          links.slice().reverse().forEach((l,i)=>{ l.style.transitionDelay = (i*40)+'ms'; l.tabIndex=-1; });
+        }
+        localStorage.setItem(STORAGE_KEY, expanded ? '1':'0');
+      }
+      toggleBtn.addEventListener('click', ()=>{ expanded = !expanded; applyState(); });
+      toggleBtn.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); expanded=!expanded; applyState(); }});
+    })();
+  </script>
+  <!-- Top row (replaces header): quote bubble on left, theme bubble on right -->
+  <div class="px-4 pt-4">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex-1">
+        <div class="fp-section-card flex items-start gap-3">
+          <div class="text-[var(--primary-color)] mt-0.5" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M7 6h5v5H9.5A2.5 2.5 0 0 0 7 13.5V16H4v-2.5A7.5 7.5 0 0 1 11.5 6H7Zm10 0h5v5h-2.5A2.5 2.5 0 0 0 17 13.5V16h-3v-2.5A7.5 7.5 0 0 1 21.5 6H17Z"/></svg>
+          </div>
+          <p id="quoteLine" class="text-[var(--text-secondary)] italic text-sm flex-1"></p>
+        </div>
+      </div>
+      <div class="relative">
+        <button id="themeToggle" class="fp-bubble fp-bubble-circle text-[var(--text-secondary)]" aria-haspopup="true" aria-expanded="false" aria-controls="themeMenu" title="Theme">
+          <span class="sr-only">Theme</span>
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3c-5 0-9 3.8-9 8.5S6 20 10 20c.8 0 1.5-.7 1.5-1.5S10.7 17 10 17H9a3 3 0 1 1 0-6h4a4 4 0 0 0 4-4c0-2-2-4-5-4Z"/>
+            <circle cx="7.5" cy="12" r="1"/>
+            <circle cx="10.5" cy="9" r="1"/>
+            <circle cx="14" cy="11" r="1"/>
+            <circle cx="8.5" cy="15" r="1"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <main id="primaryArea" class="flex-1 p-6 lg:p-8" style="position:relative;">
+  
+<div class="mb-8">
+  <h2 class="text-[var(--text-primary)] text-3xl font-bold" id="welcomeHeader">Welcome!</h2>
+</div>
+<div class="flex flex-col gap-5" style="max-width:520px;">
+<!-- Calendar — left-aligned, square-ish -->
+<div id="calendarCard" class="bg-[var(--white)] rounded-xl shadow-lg overflow-hidden w-full">
+  <!-- Calendar header bar -->
+  <div class="flex items-center justify-between px-5 py-3" style="background:var(--primary-color);">
+    <button id="calPrev" class="text-white/70 hover:text-white p-1.5 rounded-full hover:bg-white/15 transition-colors" aria-label="Previous month">
+      <svg fill="currentColor" height="18" viewBox="0 0 256 256" width="18"><path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"></path></svg>
+    </button>
+    <h3 id="calTitle" class="text-white text-lg font-bold tracking-wide">&nbsp;</h3>
+    <button id="calNext" class="text-white/70 hover:text-white p-1.5 rounded-full hover:bg-white/15 transition-colors" aria-label="Next month">
+      <svg fill="currentColor" height="18" viewBox="0 0 256 256" width="18"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"></path></svg>
+    </button>
+  </div>
+  <!-- Calendar grid -->
+  <div class="p-3">
+    <div id="calGrid" class="grid grid-cols-7 text-center" style="gap:0;"></div>
+  </div>
+</div>
+<!-- Events list — same width as calendar -->
+<div class="bg-[var(--white)] rounded-xl shadow-lg p-5 flex flex-col">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-[var(--text-primary)] text-sm font-semibold flex items-center gap-2">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[var(--primary-color)]"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Upcoming Events
+    </h3>
+  </div>
+  <div id="upcomingList" class="space-y-2 overflow-auto flex-1 pr-1" style="max-height:260px;"></div>
+</div>
+</div>
+</main>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  updateCalendarLights(window.ThemeManager?.getTheme?.() === 'christmas');
+});
+window.addEventListener('fpThemeChanged', function(e){
+  const key = e.detail?.theme;
+  updateCalendarLights(key === 'christmas');
+});
+
+// Christmas lights border around the calendar card
+function updateCalendarLights(active){
+  const card = document.getElementById('calendarCard');
+  if(!card) return;
+  // Remove if present
+  const existing = card.querySelector('#fpLightsBorder');
+  if(existing) existing.remove();
+  if(!active) return;
+
+  // Create an absolutely positioned SVG overlay as a border
+  const wrapper = document.createElement('div');
+  wrapper.id = 'fpLightsBorder';
+  wrapper.style.position = 'absolute';
+  wrapper.style.inset = '0';
+  wrapper.style.pointerEvents = 'none';
+  wrapper.style.zIndex = '6';
+  wrapper.style.borderRadius = getComputedStyle(card).borderRadius || '0.5rem';
+  wrapper.style.overflow = 'hidden';
+
+  // Ensure the card can host absolute children
+  const prevPos = getComputedStyle(card).position;
+  if(prevPos === 'static' || !prevPos){ card.style.position = 'relative'; }
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('width', '100%');
+  svg.setAttribute('height', '100%');
+  svg.setAttribute('viewBox', '0 0 1000 700');
+  svg.setAttribute('preserveAspectRatio', 'none');
+
+  const defs = document.createElementNS(svg.namespaceURI, 'defs');
+  const glow = document.createElementNS(svg.namespaceURI, 'filter');
+  glow.setAttribute('id', 'fpLightGlow');
+  glow.innerHTML = `
+    <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+    <feMerge>
+      <feMergeNode in="blur"/>
+      <feMergeNode in="SourceGraphic"/>
+    </feMerge>
+  `;
+  defs.appendChild(glow);
+
+  const bulbColors = ['#ff3b30','#ffcc00','#34c759','#5ac8fa','#ff2d55'];
+
+  // Dynamic rounded rectangle path hugging the card's border (no size change)
+  const cardRect = card.getBoundingClientRect();
+  const rPx = parseFloat(getComputedStyle(card).borderRadius) || 16; // actual pixel corner radius
+  // Map real radius into SVG coordinate space (1000x700 viewBox)
+  const r = Math.min(
+    Math.max(8, (rPx / cardRect.width) * 1000), // scale horizontally
+    Math.max(8, (rPx / cardRect.height) * 700),  // scale vertically
+    120 // cap
+  );
+  const margin = 8; // slight inset so bulbs sit visually on border, not deep inside
+  const innerW = 1000 - margin*2;
+  const innerH = 700 - margin*2;
+  const wire = document.createElementNS(svg.namespaceURI, 'path');
+  const d = [
+    `M${margin + r} ${margin}`,
+    `H${margin + innerW - r}`,
+    `Q${margin + innerW} ${margin} ${margin + innerW} ${margin + r}`,
+    `V${margin + innerH - r}`,
+    `Q${margin + innerW} ${margin + innerH} ${margin + innerW - r} ${margin + innerH}`,
+    `H${margin + r}`,
+    `Q${margin} ${margin + innerH} ${margin} ${margin + innerH - r}`,
+    `V${margin + r}`,
+    `Q${margin} ${margin} ${margin + r} ${margin}`,
+    'Z'
+  ].join(' ');
+  wire.setAttribute('d', d);
+  wire.setAttribute('fill', 'none');
+  wire.setAttribute('stroke', '#2b2b2b');
+  wire.setAttribute('stroke-width', '3');
+  wire.setAttribute('stroke-linejoin', 'round');
+  wire.setAttribute('stroke-linecap', 'round');
+
+  // Place bulbs at intervals along each side
+  const bulbsGroup = document.createElementNS(svg.namespaceURI, 'g');
+  bulbsGroup.setAttribute('filter', 'url(#fpLightGlow)');
+
+  function addBulb(cx, cy, color, rotate){
+    const g = document.createElementNS(svg.namespaceURI, 'g');
+    g.setAttribute('transform', `translate(${cx},${cy}) rotate(${rotate||0})`);
+    const cap = document.createElementNS(svg.namespaceURI, 'rect');
+    cap.setAttribute('x', '-4'); cap.setAttribute('y', '-10'); cap.setAttribute('width', '8'); cap.setAttribute('height', '6');
+    cap.setAttribute('rx', '1'); cap.setAttribute('fill', '#444');
+    const bulb = document.createElementNS(svg.namespaceURI, 'ellipse');
+    bulb.setAttribute('cx', '0'); bulb.setAttribute('cy', '6'); bulb.setAttribute('rx', '6'); bulb.setAttribute('ry', '10');
+    bulb.setAttribute('fill', color);
+    bulb.setAttribute('opacity', '0.95');
+    bulb.style.animation = `fpBulbTwinkle ${1.6 + Math.random()}s ease-in-out ${Math.random()}s infinite alternate`;
+    g.appendChild(cap); g.appendChild(bulb);
+    bulbsGroup.appendChild(g);
+  }
+
+  // Place bulbs along new rounded rectangle perimeter
+  const spacing = 60; // base spacing (in SVG units)
+  const left = margin;
+  const right = margin + innerW;
+  const top = margin;
+  const bottom = margin + innerH;
+
+  // Top edge
+  for(let x = left + r; x <= right - r; x += spacing){
+    addBulb(x, top, bulbColors[Math.floor(x/spacing)%bulbColors.length], 0);
+  }
+  // Bottom edge
+  for(let x = left + r; x <= right - r; x += spacing){
+    addBulb(x, bottom, bulbColors[(Math.floor(x/spacing)+2)%bulbColors.length], 180);
+  }
+  // Left edge
+  for(let y = top + r; y <= bottom - r; y += spacing){
+    addBulb(left, y, bulbColors[(Math.floor(y/spacing)+1)%bulbColors.length], -90);
+  }
+  // Right edge
+  for(let y = top + r; y <= bottom - r; y += spacing){
+    addBulb(right, y, bulbColors[(Math.floor(y/spacing)+3)%bulbColors.length], 90);
+  }
+
+  svg.appendChild(defs);
+  svg.appendChild(wire);
+  svg.appendChild(bulbsGroup);
+
+  wrapper.appendChild(svg);
+  card.appendChild(wrapper);
+
+  // Add styles for bulb twinkle once
+  if(!document.getElementById('fpLightsStyles')){
+    const style = document.createElement('style');
+    style.id = 'fpLightsStyles';
+    style.textContent = `
+      @keyframes fpBulbTwinkle {
+        0% { filter: drop-shadow(0 0 0px rgba(255,255,255,0.2)) brightness(0.9); opacity: 0.9; }
+        100% { filter: drop-shadow(0 0 8px rgba(255,255,255,0.9)) brightness(1.25); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+</script>
+</div>
+ </div>
+
+ <!-- Create Event Modal -->
+<div id="eventModal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-40 hidden">
+  <div class="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8 w-full max-w-2xl relative">
+    <button id="closeEventModal" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:hover:text-white text-2xl">&times;</button>
+    <h3 class="text-xl font-semibold mb-6 text-[var(--text-primary)]">Create Event</h3>
+    <form id="eventForm" class="grid sm:grid-cols-2 gap-4">
+      <div class="sm:col-span-1">
+        <label for="evDate" class="block text-sm font-medium text-[var(--text-primary)] mb-1">Date</label>
+        <input type="date" id="evDate" class="w-full rounded border border-[var(--border-color)] p-2" />
+        <div class="mt-2 flex flex-wrap items-end gap-3 text-xs text-[var(--text-secondary)]" id="eventDatePartsRow">
+          <div class="flex items-center gap-1">Day: <input id="evDay" class="w-12 border rounded p-1 text-center ev-mini" readonly></div>
+          <div class="flex items-center gap-1">Month: <input id="evMonth" class="w-12 border rounded p-1 text-center ev-mini" readonly></div>
+          <div class="flex items-center gap-1">Year: <input id="evYear" class="w-16 border rounded p-1 text-center ev-mini" readonly></div>
+          <div class="flex items-center gap-2 ml-2">
+            <span class="text-[var(--text-secondary)]">Time:</span>
+            <label for="evFrom" class="sr-only">From</label>
+            <span>From:</span>
+            <input type="time" id="evFrom" class="w-28 rounded border border-[var(--border-color)] p-1" />
+            <label for="evTo" class="sr-only">To</label>
+            <span>To:</span>
+            <input type="time" id="evTo" class="w-28 rounded border border-[var(--border-color)] p-1" />
+          </div>
+        </div>
+      </div>
+      <div class="sm:col-span-1">
+        <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">All Day</label>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="evAllDay" class="rounded border-gray-300" />
+          <label for="evAllDay" class="text-[var(--text-secondary)]">Mark as all day</label>
+        </div>
+      </div>
+      <div class="sm:col-span-2 grid sm:grid-cols-3 gap-3 items-end">
+      <div>
+          <label for="evType" class="block text-sm font-medium text-[var(--text-primary)] mb-1">Event Type</label>
+          <select id="evType" class="w-full rounded border border-[var(--border-color)] p-2 bg-white">
+            <option value="Test/Exam">Test/Exam</option>
+            <option value="Study Time">Study Time</option>
+            <option value="Group Activity">Group Activity</option>
+            <option value="Practice">Practice</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="sm:col-span-2">
+          <label for="evSubject" class="block text-sm font-medium text-[var(--text-primary)] mb-1">Subject</label>
+          <input type="text" id="evSubject" class="w-full rounded border border-[var(--border-color)] p-2" placeholder="Event subject" />
+        </div>
+      </div>
+      <div class="sm:col-span-2">
+        <label for="evDesc" class="block text-sm font-medium text-[var(--text-primary)] mb-1">Description</label>
+        <textarea id="evDesc" rows="3" class="w-full rounded border border-[var(--border-color)] p-2" placeholder="Short description (optional)"></textarea>
+      </div>
+      <div class="sm:col-span-2">
+        <label for="evLocation" class="block text-sm font-medium text-[var(--text-primary)] mb-1">Location</label>
+        <input type="text" id="evLocation" class="w-full rounded border border-[var(--border-color)] p-2" placeholder="Where is this event?" />
+      </div>
+      <div class="sm:col-span-2">
+        <label for="evNotify" class="block text-sm font-medium text-[var(--text-primary)] mb-1">Notification</label>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="evNotify" class="rounded border-gray-300" />
+          <label for="evNotify" class="text-[var(--text-secondary)]">Notify me before event</label>
+          <select id="evNotifyTime" class="ml-2 rounded border border-[var(--border-color)] p-2 bg-white" disabled>
+            <option value="5">5 minutes before</option>
+            <option value="15">15 minutes before</option>
+            <option value="30">30 minutes before</option>
+            <option value="60">1 hour before</option>
+            <option value="120">2 hours before</option>
+            <option value="1440">1 day before</option>
+          </select>
+        </div>
+      </div>
+      <div class="sm:col-span-2 flex gap-3">
+        <button id="evSave" type="submit" class="px-4 py-2 bg-[var(--primary-color)] text-white rounded shadow hover:opacity-90">Save Event</button>
+        <button id="evClear" type="button" class="px-4 py-2 bg-gray-200 text-[var(--text-primary)] rounded shadow hover:bg-gray-300">Clear</button>
+      </div>
+    </form>
+  </div>
+</div>
+</main>
+</div>
+ </div>
+
+<!-- Buddy Character: roams the home page -->
+<div id="npc-container" style="position:fixed;z-index:998;pointer-events:none;left:120px;top:200px;">
+  <div id="chat-bubble" style="position:absolute;left:50%;top:-52px;transform:translateX(-50%);background:#fff;color:#222;border-radius:12px;padding:8px 14px;font-size:0.82rem;min-width:100px;max-width:200px;box-shadow:0 2px 8px rgba(0,0,0,0.18);text-align:center;opacity:0;pointer-events:none;transition:opacity 0.4s;white-space:nowrap;"></div>
+  <img id="npc" src="buddy-test/animations/walking-8-frames/south/frame_000.png" style="width:96px;height:96px;image-rendering:pixelated;user-select:none;pointer-events:none;display:block;">
+</div>
+<script>
+(function(){
+  fetch('buddy-test/metadata.json').then(r=>r.json()).then(meta=>{
+    // Prefix all asset paths with buddy-test/ since we're at the root
+    for(const dir in meta.frames.rotations){
+      meta.frames.rotations[dir]='buddy-test/'+meta.frames.rotations[dir];
+    }
+    for(const anim in meta.frames.animations){
+      for(const dir in meta.frames.animations[anim]){
+        meta.frames.animations[anim][dir]=meta.frames.animations[anim][dir].map(p=>'buddy-test/'+p);
+      }
+    }
+    window.buddyMetadata=meta;
+    startBuddy();
+  }).catch(()=>{ window.buddyMetadata=null; startBuddy(); });
+
+  function startBuddy(){
+    const npc=document.getElementById('npc');
+    const chatBubble=document.getElementById('chat-bubble');
+    const npcContainer=document.getElementById('npc-container');
+    if(!npc||!chatBubble||!npcContainer) return;
+    const metadata=window.buddyMetadata;
+    const quotes=["You've got this!","Keep going, champion!","Every try makes you better!","Focus and win!","Mistakes are proof you're learning!","Small steps, big progress!","Believe in yourself!","One card at a time!","You're on a streak!"];
+    let x=Math.random()*(window.innerWidth-140)+40;
+    let y=Math.random()*(window.innerHeight-200)+40;
+    const baseSpeed=1.5;
+    const directions=metadata?Object.keys(metadata.frames.rotations):['north','north-east','east','south-east','south','south-west','west','north-west'];
+    let currentDir='south',frame=0,dx=0,dy=1,changeTime=rnd(60,140),walking=true,idleTime=0,stopCount=0;
+    const totalFrames=metadata?metadata.frames.animations['walking-8-frames'][directions[0]].length:8;
+    const cw=metadata?metadata.character.size.width:96;
+    const ch=metadata?metadata.character.size.height:96;
+    function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+    function dir(dx,dy){
+      if(dx===0&&dy<0)return'north';if(dx>0&&dy<0)return'north-east';if(dx>0&&dy===0)return'east';
+      if(dx>0&&dy>0)return'south-east';if(dx===0&&dy>0)return'south';if(dx<0&&dy>0)return'south-west';
+      if(dx<0&&dy===0)return'west';if(dx<0&&dy<0)return'north-west';return'south';
+    }
+    function pickDir(){
+      currentDir=directions[rnd(0,directions.length-1)];
+      switch(currentDir){case'north':dx=0;dy=-1;break;case'north-east':dx=1;dy=-1;break;case'east':dx=1;dy=0;break;case'south-east':dx=1;dy=1;break;case'south':dx=0;dy=1;break;case'south-west':dx=-1;dy=1;break;case'west':dx=-1;dy=0;break;case'north-west':dx=-1;dy=-1;break;default:dx=0;dy=1;}
+    }
+    function showQuote(){chatBubble.textContent=quotes[rnd(0,quotes.length-1)];chatBubble.style.opacity='1';}
+    function hideQuote(){chatBubble.style.opacity='0';}
+    function setFrame(src){if(npc.src!==location.origin+'/'+src&&npc.getAttribute('src')!==src)npc.src=src;}
+    function tick(){
+      if(walking){
+        if(--changeTime<=0){pickDir();changeTime=rnd(60,140);}
+        let spd=baseSpeed;if(dx!==0&&dy!==0)spd/=Math.sqrt(2);
+        let nx=x+dx*spd,ny=y+dy*spd;
+        if(nx<0||nx>window.innerWidth-cw||ny<0||ny>window.innerHeight-ch-60){
+          walking=false;idleTime=rnd(60,180);stopCount++;
+          setFrame(metadata?metadata.frames.rotations[currentDir]:`buddy-test/rotations/${currentDir}.png`);
+          if(stopCount%3===0)showQuote();else hideQuote();
+        }else{
+          x=nx;y=ny;currentDir=dir(dx,dy);frame=(frame+1)%totalFrames;
+          setFrame(metadata?metadata.frames.animations['walking-8-frames'][currentDir][frame]:`buddy-test/animations/walking-8-frames/${currentDir}/frame_00${frame}.png`);
+          hideQuote();
+          if(Math.random()<0.004){walking=false;idleTime=rnd(120,300);stopCount++;setFrame(metadata?metadata.frames.rotations[currentDir]:`buddy-test/rotations/${currentDir}.png`);if(stopCount%3===0)showQuote();else hideQuote();}
+        }
+      }else{
+        if(--idleTime<=0){walking=true;frame=0;pickDir();}
+        setFrame(metadata?metadata.frames.rotations[currentDir]:`buddy-test/rotations/${currentDir}.png`);
+      }
+      let cx=Math.max(0,Math.min(x,window.innerWidth-cw));
+      let cy=Math.max(0,Math.min(y,window.innerHeight-ch-60));
+      if(cx<100)cx=100;if(cx>window.innerWidth-cw-100)cx=window.innerWidth-cw-100;
+      npcContainer.style.left=cx+'px';npcContainer.style.top=cy+'px';
+    }
+    setInterval(tick,1000/60);
+  }
+})();
+</script>
+
+ <script src="themes.js"></script>
+ <script src="achievements.js"></script>
+ <script src="quotes.js"></script>
+ <script>
+ // Adaptive styling: Only Day / Month / Year mini inputs change per theme tint; full dark override still applies in dark/system dark.
+ (function(){
+   function currentTheme(){ try { return window.ThemeManager?.getTheme?.()||'system'; } catch { return 'system'; } }
+   function systemPrefersDark(){ return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches; }
+   function isTrueDark(){ const t=currentTheme(); return t==='dark' || (t==='system' && systemPrefersDark()); }
+   const MINI_IDS=['evDay','evMonth','evYear'];
+   const DARK_EXTRA_IDS=['evDate','evFrom','evTo'];
+   const MINI_THEME_STYLES={
+     light:  { bg:'#ffffff',  color:'#111418', border:'#e5e7eb' },
+     ocean:  { bg:'#d6ebf5', color:'#0d1724', border:'#94c3d4' },
+     forest: { bg:'#ddece5', color:'#072616', border:'#a6ccb8' },
+     sunset: { bg:'#ffe1cc', color:'#1a2532', border:'#f7c8a3' },
+     'high-contrast': { bg:'#ffffff', color:'#000000', border:'#000000' },
+     'star-wars': { bg:'#14181e', color:'#ffe81f', border:'#1f2933' },
+     system: null, // resolved dynamically
+     dark: null    // handled separately
+   };
+   function resolveMiniStyle(){
+     const t=currentTheme();
+     if(isTrueDark()) return null; // dark handled elsewhere
+     if(t==='system') return systemPrefersDark()? null : MINI_THEME_STYLES.light;
+     return MINI_THEME_STYLES[t] || MINI_THEME_STYLES.light;
+   }
+   function apply(){
+     const dark=isTrueDark();
+     // Handle dark mode: apply dark palette to mini + time/date
+     if(dark){
+       [...MINI_IDS, ...DARK_EXTRA_IDS].forEach(id=>{
+         const el=document.getElementById(id); if(!el) return;
+         el.style.background='#1f2937';
+         el.style.color='#ffffff';
+         el.style.borderColor='#334155';
+         el.style.webkitTextFillColor='#ffffff';
+         el.style.caretColor='#ffffff';
+         el.style.colorScheme='dark';
+       });
+       return;
+     }
+     // Non-dark: clear dark overrides from extra fields
+     DARK_EXTRA_IDS.forEach(id=>{
+       const el=document.getElementById(id); if(!el) return;
+       ['background','color','borderColor','webkitTextFillColor','caretColor','colorScheme'].forEach(p=>{ try { el.style[p]=''; } catch{} });
+     });
+     // Apply per-theme tint to mini fields
+     const style=resolveMiniStyle();
+     MINI_IDS.forEach(id=>{
+       const el=document.getElementById(id); if(!el) return;
+       if(style){
+         el.style.background=style.bg;
+         el.style.color=style.color;
+         el.style.borderColor=style.border;
+         el.style.webkitTextFillColor=style.color;
+       } else {
+         // Should not happen for non-dark, but reset anyway
+         ['background','color','borderColor','webkitTextFillColor'].forEach(p=>{ try { el.style[p]=''; } catch{} });
+       }
+     });
+   }
+   window.addEventListener('fpThemeChanged', ()=> setTimeout(apply,35));
+   window.addEventListener('DOMContentLoaded', ()=> setTimeout(apply,55));
+   if(window.matchMedia){
+     const mq=window.matchMedia('(prefers-color-scheme: dark)');
+     if(mq.addEventListener){ mq.addEventListener('change', ()=>apply()); } else if(mq.addListener){ mq.addListener(()=>apply()); }
+   }
+ })();
+ </script>
+ <script>
+  // Register service worker for PWA (basic offline shell)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(console.warn);
+    });
+  }
+ </script>
+ <script>
+  (function() {
+    const titleEl = document.getElementById('calTitle');
+    const gridEl = document.getElementById('calGrid');
+    const btnPrev = document.getElementById('calPrev');
+    const btnNext = document.getElementById('calNext');
+    // Theme drawer toggle
+    const themeBtn = document.getElementById('themeToggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if(window.ThemeManager && window.ThemeManager.openPicker) window.ThemeManager.openPicker();
+      });
+    }
+    // Random quote injection
+    function currentTheme(){ return (window.ThemeManager && window.ThemeManager.getTheme && window.ThemeManager.getTheme()) || 'system'; }
+    function baseQuoteList(){
+  if(currentTheme()==='star-wars') return (window.FP_QUOTES_STAR_WARS||[]);
+      return (window.FP_QUOTES && Array.isArray(window.FP_QUOTES) && window.FP_QUOTES.length)
+        ? window.FP_QUOTES
+        : [{ text: 'Focus on progress, not perfection.' }];
+    }
+    function setRandomQuote(force){
+      const qEl=document.getElementById('quoteLine'); if(!qEl) return;
+      const list=baseQuoteList();
+      const pick=list[Math.floor(Math.random()*list.length)];
+      const text=typeof pick==='string'? pick : (pick?.text||'');
+      const author=pick && typeof pick==='object' && pick.author? ` — ${pick.author}`:'';
+      qEl.textContent=`${text}${author}`;
+    }
+    // --- Timed Rotation with Fade ---
+    let quoteInterval=null; let quoteFading=false;
+    function applyQuoteStyles(){ const qEl=document.getElementById('quoteLine'); if(qEl){ qEl.style.transition='opacity .6s ease'; qEl.style.opacity='1'; } }
+    function rotateQuoteImmediate(){ const qEl=document.getElementById('quoteLine'); if(!qEl) return; if(quoteFading) return; quoteFading=true; qEl.style.opacity='0'; setTimeout(()=>{ setRandomQuote(); qEl.style.opacity='1'; quoteFading=false; },600); }
+    function startQuoteRotation(){ clearInterval(quoteInterval); applyQuoteStyles(); // set first quote instantly then cycle
+      setRandomQuote(); quoteInterval=setInterval(()=> rotateQuoteImmediate(), 15000); }
+    window.addEventListener('fpThemeChanged', e=>{ if(e.detail?.theme){ // restart rotation with new list
+        startQuoteRotation();
+      }});
+    startQuoteRotation();
+  const form = document.getElementById('eventForm');
+  const evDate = document.getElementById('evDate');
+  const evMonth = document.getElementById('evMonth');
+  const evDay = document.getElementById('evDay');
+  const evYear = document.getElementById('evYear');
+  const evAllDay = document.getElementById('evAllDay');
+  const evFrom = document.getElementById('evFrom');
+  const evTo = document.getElementById('evTo');
+  const evSubject = document.getElementById('evSubject');
+  const evType = document.getElementById('evType');
+  const evDesc = document.getElementById('evDesc');
+  const evLocation = document.getElementById('evLocation');
+  const btnClear = document.getElementById('evClear');
+  const upcomingList = document.getElementById('upcomingList');
+    if (!titleEl || !gridEl || !btnPrev || !btnNext) return;
+
+    const today = new Date();
+    let viewYear = today.getFullYear();
+    let viewMonth = today.getMonth(); // 0-11
+
+    // Detect holiday region (very light heuristic). User can override via localStorage key `fpHolidaysRegion`.
+    const holidayRegion = (localStorage.getItem('fpHolidaysRegion') || detectHolidayRegion());
+
+    function detectHolidayRegion(){
+      try {
+        const lang = (navigator.language || '').toLowerCase();
+        if (lang.includes('us')) return 'US';
+        if (lang.includes('gb') || lang.includes('uk')) return 'GB';
+        if (lang.includes('ca')) return 'CA';
+      } catch {}
+      return 'US'; // default
+    }
+
+    function toISO(y,m,d){ // m: 1-12
+      return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    }
+    function observedFixedDate(y, m0, d){ // month 0-11; US observed rule for fixed-date holidays
+      const dt = new Date(y, m0, d);
+      const wd = dt.getDay(); // 0 Sun .. 6 Sat
+      if (wd === 6) { // Saturday -> observed Friday
+        const obs = new Date(dt); obs.setDate(dt.getDate() - 1);
+        return obs;
+      }
+      if (wd === 0) { // Sunday -> observed Monday
+        const obs = new Date(dt); obs.setDate(dt.getDate() + 1);
+        return obs;
+      }
+      return dt;
+    }
+    function nthWeekdayOfMonth(y, m0, weekday, n){ // weekday 0-6, n>=1
+      const first = new Date(y, m0, 1);
+      const firstW = first.getDay();
+      const offset = (7 + weekday - firstW) % 7;
+      const day = 1 + offset + (n-1)*7;
+      return new Date(y, m0, day);
+    }
+    function lastWeekdayOfMonth(y, m0, weekday){
+      const last = new Date(y, m0+1, 0); // last day of month m0
+      const delta = (last.getDay() - weekday + 7) % 7; // how many days to step back
+      last.setDate(last.getDate() - delta);
+      return last;
+    }
+    function getUSFederalHolidaysMap(y){
+      const map = {};
+      // New Year's Day (Observed)
+      { const obs = observedFixedDate(y, 0, 1); map[obs.toISOString().slice(0,10)] = "New Year's Day" + (obs.getDate()!==1||obs.getMonth()!==0? ' (Observed)':'' ); }
+      // Martin Luther King Jr. Day – 3rd Monday in January
+      { const dt = nthWeekdayOfMonth(y, 0, 1, 3); map[dt.toISOString().slice(0,10)] = 'Martin Luther King Jr. Day'; }
+      // Presidents' Day – 3rd Monday in February
+      { const dt = nthWeekdayOfMonth(y, 1, 1, 3); map[dt.toISOString().slice(0,10)] = "Presidents' Day"; }
+      // Memorial Day – last Monday in May
+      { const dt = lastWeekdayOfMonth(y, 4, 1); map[dt.toISOString().slice(0,10)] = 'Memorial Day'; }
+      // Juneteenth – June 19 (Observed)
+      { const obs = observedFixedDate(y, 5, 19); map[obs.toISOString().slice(0,10)] = 'Juneteenth National Independence Day' + (obs.getDate()!==19||obs.getMonth()!==5? ' (Observed)':'' ); }
+      // Independence Day – July 4 (Observed)
+      { const obs = observedFixedDate(y, 6, 4); map[obs.toISOString().slice(0,10)] = 'Independence Day' + (obs.getDate()!==4||obs.getMonth()!==6? ' (Observed)':'' ); }
+      // Labor Day – first Monday in September
+      { const dt = nthWeekdayOfMonth(y, 8, 1, 1); map[dt.toISOString().slice(0,10)] = 'Labor Day'; }
+      // Columbus Day – second Monday in October
+      { const dt = nthWeekdayOfMonth(y, 9, 1, 2); map[dt.toISOString().slice(0,10)] = 'Columbus Day'; }
+      // Veterans Day – Nov 11 (Observed)
+      { const obs = observedFixedDate(y, 10, 11); map[obs.toISOString().slice(0,10)] = 'Veterans Day' + (obs.getDate()!==11||obs.getMonth()!==10? ' (Observed)':'' ); }
+      // Thanksgiving – fourth Thursday in November
+      { const dt = nthWeekdayOfMonth(y, 10, 4, 4); map[dt.toISOString().slice(0,10)] = 'Thanksgiving Day'; }
+      // Christmas – Dec 25 (Observed)
+      { const obs = observedFixedDate(y, 11, 25); map[obs.toISOString().slice(0,10)] = 'Christmas Day' + (obs.getDate()!==25||obs.getMonth()!==11? ' (Observed)':'' ); }
+      return map;
+    }
+    function getGenericHolidaysMap(y){
+      const map = {};
+      { const obs = observedFixedDate(y, 0, 1); map[obs.toISOString().slice(0,10)] = "New Year's Day" + (obs.getDate()!==1||obs.getMonth()!==0? ' (Observed)':'' ); }
+      { const obs = observedFixedDate(y, 11, 25); map[obs.toISOString().slice(0,10)] = 'Christmas Day' + (obs.getDate()!==25||obs.getMonth()!==11? ' (Observed)':'' ); }
+      return map;
+    }
+    function getHolidayMap(y, region){
+      if (region === 'US') return getUSFederalHolidaysMap(y);
+      // TODO: add GB/CA sets later; use generic for now
+      return getGenericHolidaysMap(y);
+    }
+    function getHolidayEventsForYear(y, region){
+      const map = getHolidayMap(y, region);
+      const list = [];
+      Object.entries(map).forEach(([iso, name]) => {
+        list.push({
+          id: `holiday:${iso}`,
+          date: iso,
+          start: `${iso}T00:00:00`,
+          end: `${iso}T23:59:59`,
+          from: '', to: '', allDay: true,
+          type: 'Holiday',
+          subject: name,
+          desc: '', location: ''
+        });
+      });
+      return list;
+    }
+    function getHolidayEventsBetween(startDate, endDate, region){
+      const ys = startDate.getFullYear();
+      const ye = endDate.getFullYear();
+      let list = [];
+      for (let y=ys; y<=ye; y++) list = list.concat(getHolidayEventsForYear(y, region));
+      const startMs = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()).getTime();
+      const endMs = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23,59,59,999).getTime();
+      return list.filter(ev => {
+        const t = new Date(ev.start).getTime();
+        return t >= startMs && t <= endMs;
+      });
+    }
+
+    function formatMonthYear(y, m) {
+      return new Date(y, m, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    }
+
+    function adjustCalendarSquare(){
+      // Fixed 6-row grid — no size adjustment needed
+    }
+
+    function render() {
+      titleEl.textContent = formatMonthYear(viewYear, viewMonth);
+      gridEl.innerHTML = '';
+      const holidayMap = getHolidayMap(viewYear, holidayRegion);
+
+      // Weekday headers (Sun..Sat) — short names
+      const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      weekdays.forEach(w => {
+        const el = document.createElement('div');
+        el.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:6px 0;color:var(--text-secondary);border-bottom:1px solid var(--border-color);';
+        el.textContent = w;
+        gridEl.appendChild(el);
+      });
+
+      const firstOfMonth = new Date(viewYear, viewMonth, 1);
+      const startWeekday = firstOfMonth.getDay(); // 0=Sun
+      const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+      const prevMonthDays = new Date(viewYear, viewMonth, 0).getDate();
+
+      // Always render exactly 6 rows = 42 cells for consistent height
+      const totalCells = 42;
+
+      for (let i = 0; i < totalCells; i++) {
+        let day, isCurrentMonth = true, cellYear = viewYear, cellMonth = viewMonth;
+
+        if (i < startWeekday) {
+          // Previous month trailing days
+          day = prevMonthDays - startWeekday + 1 + i;
+          isCurrentMonth = false;
+          cellMonth = viewMonth - 1;
+          if (cellMonth < 0) { cellMonth = 11; cellYear--; }
+        } else if (i >= startWeekday + daysInMonth) {
+          // Next month leading days
+          day = i - startWeekday - daysInMonth + 1;
+          isCurrentMonth = false;
+          cellMonth = viewMonth + 1;
+          if (cellMonth > 11) { cellMonth = 0; cellYear++; }
+        } else {
+          day = i - startWeekday + 1;
+        }
+
+        const cell = document.createElement('div');
+        const isToday = isCurrentMonth && day === today.getDate() && viewMonth === today.getMonth() && viewYear === today.getFullYear();
+
+        // Cell styling — consistent height with border grid
+        cell.style.cssText = 'position:relative;min-height:48px;display:flex;flex-direction:column;align-items:center;padding:4px 2px;border-bottom:1px solid var(--border-color);cursor:pointer;transition:background .12s;';
+        if (i % 7 !== 6) cell.style.borderRight = '1px solid var(--border-color)';
+
+        // Day number
+        const dayNum = document.createElement('span');
+        dayNum.style.cssText = 'font-size:13px;font-weight:500;line-height:1;z-index:1;';
+
+        if (!isCurrentMonth) {
+          dayNum.style.color = 'var(--text-secondary)';
+          dayNum.style.opacity = '.35';
+          cell.style.background = 'color-mix(in srgb, var(--background-color) 40%, transparent)';
+        } else {
+          dayNum.style.color = 'var(--text-primary)';
+        }
+
+        if (isToday) {
+          const todayCircle = document.createElement('div');
+          todayCircle.style.cssText = 'width:26px;height:26px;border-radius:50%;background:var(--primary-color);display:flex;align-items:center;justify-content:center;z-index:1;';
+          dayNum.style.color = 'var(--white, #fff)';
+          dayNum.style.fontWeight = '700';
+          todayCircle.appendChild(dayNum);
+          cell.appendChild(todayCircle);
+        } else {
+          cell.appendChild(dayNum);
+        }
+        dayNum.textContent = day;
+
+        // Hover effect for current month
+        if (isCurrentMonth) {
+          cell.addEventListener('mouseenter', () => { cell.style.background = 'color-mix(in srgb, var(--primary-color) 8%, transparent)'; });
+          cell.addEventListener('mouseleave', () => { cell.style.background = ''; });
+        }
+
+        // Double-click to create event (current month only)
+        if (isCurrentMonth) {
+          cell.ondblclick = () => {
+            const iso = new Date(viewYear, viewMonth, day).toISOString().slice(0,10);
+            if (evDate) evDate.value = iso;
+            if (evMonth) evMonth.value = String(viewMonth+1).padStart(2,'0');
+            if (evDay) evDay.value = String(day).padStart(2,'0');
+            if (evYear) evYear.value = String(viewYear);
+            evSubject?.focus();
+            showEventModal();
+          };
+        }
+
+        // Event dots (current month only)
+        const dayIso = `${cellYear}-${String(cellMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        if (isCurrentMonth) {
+          const dayEvents = loadEvents().filter(e => e.date === dayIso);
+          if (dayEvents.length) {
+            const dotWrap = document.createElement('div');
+            dotWrap.style.cssText = 'display:flex;gap:2px;margin-top:auto;padding-bottom:2px;';
+            dayEvents.slice(0,4).forEach(ev => {
+              const dot = document.createElement('span');
+              dot.style.cssText = 'width:5px;height:5px;border-radius:50%;display:inline-block;';
+              dot.style.backgroundColor = typeColor(ev.type);
+              dotWrap.appendChild(dot);
+            });
+            cell.appendChild(dotWrap);
+          }
+        }
+
+        // Holiday star badge
+        if (isCurrentMonth) {
+          const holidayName = holidayMap[dayIso];
+          if (holidayName) {
+            const badge = document.createElement('div');
+            badge.style.cssText = 'position:absolute;top:2px;right:3px;font-size:9px;line-height:1;color:#0ea5e9;';
+            badge.title = holidayName;
+            badge.setAttribute('aria-label', `Holiday: ${holidayName}`);
+            badge.textContent = '★';
+            cell.appendChild(badge);
+          }
+        }
+
+        gridEl.appendChild(cell);
+      }
+    }
+
+  btnPrev.addEventListener('click', () => {
+      viewMonth -= 1;
+      if (viewMonth < 0) { viewMonth = 11; viewYear -= 1; }
+      render();
+      renderUpcomingHolidays();
+    });
+  btnNext.addEventListener('click', () => {
+      viewMonth += 1;
+      if (viewMonth > 11) { viewMonth = 0; viewYear += 1; }
+      render();
+      renderUpcomingHolidays();
+    });
+
+    // Form helpers
+    if (evDate) {
+      evDate.addEventListener('change', () => {
+        const dt = evDate.value ? new Date(evDate.value + 'T00:00:00') : null;
+        if (dt) {
+          evMonth && (evMonth.value = String(dt.getMonth()+1).padStart(2,'0'));
+          evDay && (evDay.value = String(dt.getDate()).padStart(2,'0'));
+          evYear && (evYear.value = String(dt.getFullYear()));
+        } else {
+          evMonth && (evMonth.value = ''); evDay && (evDay.value = ''); evYear && (evYear.value = '');
+        }
+      });
+    }
+
+    if (evAllDay && evFrom && evTo) {
+      const toggleTimes = () => {
+        const disabled = evAllDay.checked;
+        evFrom.disabled = disabled; evTo.disabled = disabled;
+        if (disabled) { evFrom.value = ''; evTo.value = ''; }
+      };
+      evAllDay.addEventListener('change', toggleTimes);
+      toggleTimes();
+    }
+
+    function loadEvents() {
+      try { return JSON.parse(localStorage.getItem('fpEvents')||'[]'); } catch { return []; }
+    }
+    function saveEvents(list) {
+      localStorage.setItem('fpEvents', JSON.stringify(list));
+    }
+
+    // Map event types to fixed colors (inline style avoids Tailwind dynamic class issues)
+    function typeColor(type) {
+      switch ((type||'').toLowerCase()) {
+        case 'test/exam': return '#ef4444';    // red
+        case 'study time': return '#22c55e';   // green
+        case 'group activity': return '#eab308'; // yellow
+        case 'practice': return '#f97316';     // orange
+        case 'holiday': return '#0ea5e9';      // sky blue
+        case 'other': return '#a855f7';        // purple
+        default: return 'var(--primary-color)';
+      }
+    }
+
+    function renderUpcoming() {
+      const events = loadEvents();
+      // Sort by date+time
+      events.sort((a,b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+      // Keep next 10 upcoming (from today 00:00)
+      const now = new Date(); now.setHours(0,0,0,0);
+      const upcoming = events.filter(e => new Date(e.start) >= now).slice(0,10);
+      upcomingList.innerHTML = '';
+      if (!upcoming.length) {
+        const empty = document.createElement('div');
+        empty.className = 'text-[var(--text-secondary)] text-sm';
+        empty.textContent = 'No upcoming events.';
+        upcomingList.appendChild(empty);
+        return;
+      }
+
+      upcoming.forEach(e => {
+        const color = typeColor(e.type);
+        const time = e.allDay ? 'All day' : `${formatTime(e.from)} - ${formatTime(e.to)}`;
+        const item = document.createElement('div');
+        item.className = 'flex items-start gap-3';
+        const canDelete = true;
+        const deleteBtn = canDelete ? `
+          <button class="ml-auto p-1.5 rounded hover:bg-red-50 text-red-500 hover:text-red-700" data-id="${e.id}" aria-label="Delete event" title="Delete">
+            <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 20 20\" fill=\"currentColor\" class=\"w-5 h-5\"><path fill-rule=\"evenodd\" d=\"M9 2a1 1 0 00-1 1v1H5.5a.5.5 0 000 1h9a.5.5 0 000-1H12V3a1 1 0 00-1-1H9zm-4 5h10l-.8 9.2A2 2 0 0112.21 18H7.79a2 2 0 01-1.99-1.8L5 7zm3 2a.75.75 0 011.5 0v5a.75.75 0 01-1.5 0V9zm4 0a.75.75 0 10-1.5 0v5a.75.75 0 001.5 0V9z\" clip-rule=\"evenodd\"/></svg>
+          </button>` : '';
+        item.innerHTML = `
+          <div class="w-1.5 h-10 rounded-full mt-1" style="background-color:${color}"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[var(--text-primary)] font-medium">${escapeHtml(e.subject || '(No subject)')}</p>
+            <p class="text-[var(--text-secondary)] text-sm">${new Date(e.start).toLocaleDateString()} • ${time}</p>
+            ${e.location ? `<p class=\"text-[var(--text-secondary)] text-xs\">Location: ${escapeHtml(e.location)}</p>` : ''}
+            ${e.type ? `<p class=\"text-[var(--text-secondary)] text-xs\">${escapeHtml(e.type)}</p>` : ''}
+            ${e.desc ? `<p class=\"text-xs text-[var(--text-secondary)] mt-1\">${escapeHtml(e.desc)}</p>` : ''}
+          </div>
+          ${deleteBtn}`;
+        upcomingList.appendChild(item);
+
+        const delBtn = item.querySelector('button[data-id]');
+        if (delBtn) {
+          delBtn.addEventListener('click', () => {
+            const list = loadEvents();
+            const next = list.filter(ev => ev.id !== e.id);
+            saveEvents(next);
+            renderUpcoming();
+            renderUpcomingHolidays();
+            render();
+          });
+        }
+      });
+    }
+
+    function renderUpcomingHolidays() {
+      const holidaysList = document.getElementById('upcomingHolidaysList');
+      if (!holidaysList) return;
+      const now = new Date(); now.setHours(0,0,0,0);
+      const in180 = new Date(now); in180.setDate(in180.getDate()+180);
+      const holidays = getHolidayEventsBetween(now, in180, holidayRegion)
+        .sort((a,b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+        .slice(0, 10);
+      holidaysList.innerHTML = '';
+      if (!holidays.length) {
+        const empty = document.createElement('div');
+        empty.className = 'text-[var(--text-secondary)] text-sm';
+        empty.textContent = 'No upcoming holidays.';
+        holidaysList.appendChild(empty);
+        return;
+      }
+
+      holidays.forEach(e => {
+        const color = typeColor('Holiday');
+        const time = 'All day';
+        const item = document.createElement('div');
+        item.className = 'flex items-start gap-3';
+        item.innerHTML = `
+          <div class="w-1.5 h-10 rounded-full mt-1" style="background-color:${color}"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[var(--text-primary)] font-medium">${escapeHtml(e.subject)}</p>
+            <p class="text-[var(--text-secondary)] text-sm">${new Date(e.start).toLocaleDateString()} • ${time}</p>
+          </div>`;
+        holidaysList.appendChild(item);
+      });
+    }
+
+    function formatTime(t) {
+      if (!t) return '';
+      const [h,m] = t.split(':').map(Number);
+      const d = new Date(); d.setHours(h||0, m||0, 0, 0);
+      return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    }
+
+    function escapeHtml(str='') {
+      return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+    }
+
+    if (form) {
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const dateVal = evDate?.value;
+        if (!dateVal) { alert('Please select a date.'); return; }
+        const allDay = !!evAllDay?.checked;
+        const fromVal = evFrom?.value || '';
+        const toVal = evTo?.value || '';
+        if (!allDay && (!fromVal || !toVal)) { alert('Please select From and To times, or mark All Day.'); return; }
+  const subj = (evSubject?.value || '').trim();
+  const type = (evType?.value || 'Other');
+        if (!subj) { alert('Please enter a subject.'); return; }
+
+        // Build event
+        const startIso = allDay ? `${dateVal}T00:00:00` : `${dateVal}T${fromVal}:00`;
+        const endIso = allDay ? `${dateVal}T23:59:59` : `${dateVal}T${toVal}:00`;
+        const event = {
+          id: Date.now().toString(36),
+          date: dateVal,
+          start: startIso,
+          end: endIso,
+          from: fromVal,
+          to: toVal,
+          allDay,
+          type,
+          subject: subj,
+          desc: evDesc?.value || '',
+          location: (evLocation?.value || '').trim()
+        };
+        const list = loadEvents();
+  list.push(event); saveEvents(list);
+  renderUpcoming();
+  render();
+        form.reset();
+        // Clear readonly fields
+        evMonth && (evMonth.value = ''); evDay && (evDay.value = ''); evYear && (evYear.value = '');
+      });
+    }
+
+    btnClear?.addEventListener('click', () => {
+      form?.reset();
+      evMonth && (evMonth.value = ''); evDay && (evDay.value = ''); evYear && (evYear.value = '');
+    });
+
+  render();
+  window.addEventListener('resize', () => { adjustCalendarSquare(); });
+    renderUpcoming();
+    renderUpcomingHolidays();
+  })();
+ </script>
+<script>
+function showEventModal() {
+  const m = document.getElementById('eventModal');
+  m.classList.remove('hidden');
+  m.classList.add('flex');
+}
+function hideEventModal() {
+  const m = document.getElementById('eventModal');
+  m.classList.add('hidden');
+  m.classList.remove('flex');
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('closeEventModal').addEventListener('click', hideEventModal);
+  // Personalize welcome message
+  var user = JSON.parse(localStorage.getItem('fpTestUser') || '{}');
+  var header = document.getElementById('welcomeHeader');
+  if(user.name && header) {
+    header.textContent = 'Welcome ' + (user.rank ? user.rank + ' ' : '') + user.name + '!';
+  }
+});
+</script>
+
+<!-- 4th of July Fireworks -->
+<script>
+(function(){
+  const now=new Date(), m=now.getMonth(), d=now.getDate();
+  // Only show July 3–5
+  if(m!==6||d<3||d>5) return;
+
+  const canvas=document.createElement('canvas');
+  canvas.id='fireworksCanvas';
+  Object.assign(canvas.style,{position:'fixed',top:'0',left:'0',width:'100%',height:'100%',zIndex:'0',pointerEvents:'none'});
+  document.body.prepend(canvas);
+
+  const ctx=canvas.getContext('2d');
+  let W,H;
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+  resize(); window.addEventListener('resize',resize);
+
+  const rockets=[], particles=[];
+  const colors=['#ff1744','#ffffff','#2979ff','#ffea00','#ff9100','#76ff03','#e040fb'];
+
+  function Rocket(){
+    this.x=Math.random()*W;
+    this.y=H;
+    this.tx=W*.1+Math.random()*W*.8;
+    this.ty=H*.08+Math.random()*H*.35;
+    this.speed=3+Math.random()*3;
+    const dx=this.tx-this.x, dy=this.ty-this.y, dist=Math.sqrt(dx*dx+dy*dy);
+    this.vx=dx/dist*this.speed;
+    this.vy=dy/dist*this.speed;
+    this.alpha=1;
+    this.trail=[];
+  }
+  Rocket.prototype.update=function(){
+    this.trail.push({x:this.x,y:this.y,alpha:1});
+    if(this.trail.length>12) this.trail.shift();
+    this.trail.forEach(t=>t.alpha*=.85);
+    this.x+=this.vx; this.y+=this.vy;
+    const dx=this.tx-this.x, dy=this.ty-this.y;
+    return Math.sqrt(dx*dx+dy*dy)<this.speed+2;
+  };
+  Rocket.prototype.draw=function(){
+    this.trail.forEach(t=>{
+      ctx.beginPath(); ctx.arc(t.x,t.y,1.5,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,200,100,'+t.alpha+')'; ctx.fill();
+    });
+    ctx.beginPath(); ctx.arc(this.x,this.y,2.5,0,Math.PI*2);
+    ctx.fillStyle='#ffe0a0'; ctx.fill();
+  };
+
+  function explode(x,y){
+    const count=60+Math.floor(Math.random()*60);
+    const baseClr=colors[Math.floor(Math.random()*colors.length)];
+    const style=Math.random();
+    for(let i=0;i<count;i++){
+      const angle=Math.PI*2*i/count+Math.random()*.2;
+      const speed=1+Math.random()*5;
+      const p={x,y, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed,
+        alpha:1, decay:.012+Math.random()*.018, gravity:.04,
+        color:style>.5?baseClr:colors[Math.floor(Math.random()*colors.length)],
+        size:1.5+Math.random()*2, sparkle:Math.random()>.7};
+      particles.push(p);
+    }
+  }
+
+  let lastLaunch=0;
+  function loop(ts){
+    ctx.globalCompositeOperation='destination-out';
+    ctx.fillStyle='rgba(0,0,0,0.18)';
+    ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='lighter';
+
+    // Launch new rockets
+    if(ts-lastLaunch > 400+Math.random()*1200){
+      rockets.push(new Rocket());
+      lastLaunch=ts;
+    }
+
+    // Update & draw rockets
+    for(let i=rockets.length-1;i>=0;i--){
+      const r=rockets[i];
+      if(r.update()){ explode(r.x,r.y); rockets.splice(i,1); }
+      else r.draw();
+    }
+
+    // Update & draw particles
+    for(let i=particles.length-1;i>=0;i--){
+      const p=particles[i];
+      p.vy+=p.gravity; p.x+=p.vx; p.y+=p.vy;
+      p.vx*=.985; p.vy*=.985;
+      p.alpha-=p.decay;
+      if(p.alpha<=0){particles.splice(i,1);continue;}
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      const a=p.sparkle?p.alpha*(0.5+Math.random()*.5):p.alpha;
+      ctx.fillStyle=p.color; ctx.globalAlpha=a;
+      ctx.fill(); ctx.globalAlpha=1;
+    }
+
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+
+<!-- First-time user setup modal -->
+<div id="fpSetupModal" class="hidden fixed inset-0 z-[9999] items-center justify-center bg-black/50 backdrop-blur-sm" style="display:none;">
+  <div class="bg-[var(--white)] rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 relative animate-[fpSlideUp_.4s_ease]">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+        </svg>
+      </div>
+      <h2 class="text-[var(--text-primary)] text-2xl font-bold">Welcome to FocusPath</h2>
+    </div>
+    <p class="text-[var(--text-secondary)] text-sm mb-6">Let's get you set up. This only takes a moment.</p>
+    <form id="fpSetupForm" autocomplete="off">
+      <label class="block text-[var(--text-primary)] text-sm font-semibold mb-1" for="setupName">Name</label>
+      <input id="setupName" type="text" maxlength="40" required
+        class="w-full rounded-lg border border-[var(--border-color)] px-4 py-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] bg-[var(--background-color)] text-[var(--text-primary)]"
+        placeholder="e.g. John Smith" />
+
+      <label class="block text-[var(--text-primary)] text-sm font-semibold mb-1" for="setupRank">Rank</label>
+      <input id="setupRank" type="text" maxlength="30" required
+        class="w-full rounded-lg border border-[var(--border-color)] px-4 py-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] bg-[var(--background-color)] text-[var(--text-primary)]"
+        placeholder="e.g. E-5, O-3, PO2" />
+
+      <label class="block text-[var(--text-primary)] text-sm font-semibold mb-2">Branch</label>
+      <div class="grid grid-cols-2 gap-2 mb-6" id="setupBranchGroup">
+        <button type="button" data-branch="USN"
+          class="fp-branch-btn rounded-lg border-2 border-[var(--border-color)] py-2.5 text-sm font-medium text-[var(--text-primary)] transition-all hover:border-[var(--primary-color)] focus:outline-none">USN</button>
+        <button type="button" data-branch="USAF"
+          class="fp-branch-btn rounded-lg border-2 border-[var(--border-color)] py-2.5 text-sm font-medium text-[var(--text-primary)] transition-all hover:border-[var(--primary-color)] focus:outline-none">USAF</button>
+        <button type="button" data-branch="USA"
+          class="fp-branch-btn rounded-lg border-2 border-[var(--border-color)] py-2.5 text-sm font-medium text-[var(--text-primary)] transition-all hover:border-[var(--primary-color)] focus:outline-none">USA</button>
+        <button type="button" data-branch="USMC"
+          class="fp-branch-btn rounded-lg border-2 border-[var(--border-color)] py-2.5 text-sm font-medium text-[var(--text-primary)] transition-all hover:border-[var(--primary-color)] focus:outline-none">USMC</button>
+      </div>
+
+      <button type="submit" id="setupSubmit" disabled
+        class="w-full rounded-xl bg-[var(--primary-color)] text-white font-semibold py-3 text-sm transition-opacity disabled:opacity-40 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)] focus:ring-offset-2">
+        Get Started
+      </button>
+    </form>
+  </div>
+</div>
+<style>
+  @keyframes fpSlideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fp-branch-btn.selected {
+    border-color: var(--primary-color) !important;
+    background-color: #e6f2ff;
+    color: var(--primary-color);
+    font-weight: 700;
+  }
+</style>
+<script>
+(function(){
+  // Skip if user already set up
+  var existing = JSON.parse(localStorage.getItem('fpTestUser') || 'null');
+  if(existing && existing.name) return;
+
+  var modal = document.getElementById('fpSetupModal');
+  modal.style.display = '';
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+
+  var selectedBranch = '';
+  var branchBtns = document.querySelectorAll('.fp-branch-btn');
+  var submitBtn = document.getElementById('setupSubmit');
+  var nameInput = document.getElementById('setupName');
+  var rankInput = document.getElementById('setupRank');
+
+  function checkReady() {
+    var nameOk = nameInput.value.trim().length > 0;
+    var rankOk = rankInput.value.trim().length > 0;
+    submitBtn.disabled = !(nameOk && rankOk && selectedBranch);
+  }
+
+  branchBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      branchBtns.forEach(function(b){ b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      selectedBranch = btn.getAttribute('data-branch');
+      checkReady();
+    });
+  });
+
+  nameInput.addEventListener('input', checkReady);
+  rankInput.addEventListener('input', checkReady);
+
+  document.getElementById('fpSetupForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = nameInput.value.trim();
+    var rank = rankInput.value.trim();
+    var firstName = name.split(/\s+/)[0];
+
+    var userData = {
+      name: name,
+      firstName: firstName,
+      rank: rank,
+      branch: selectedBranch
+    };
+    localStorage.setItem('fpTestUser', JSON.stringify(userData));
+
+    // Update welcome header immediately
+    var header = document.getElementById('welcomeHeader');
+    if(header) header.textContent = 'Welcome ' + rank + ' ' + name + '!';
+
+    // Close modal
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    modal.style.display = 'none';
+  });
+})();
+</script>
+
+<!-- NFAAS Daily Reminder -->
+<div id="fpNfaasModal" class="hidden fixed inset-0 z-[9998] items-center justify-center" style="background:rgba(0,0,0,0.6);backdrop-filter:blur(3px)">
+  <div class="fp-section-card p-6 max-w-sm w-[90%] text-center" style="border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="font-size:2.5rem;margin-bottom:0.5rem">📋</div>
+    <h3 id="fpNfaasQuestion" class="text-[var(--text-primary)] text-lg font-bold mb-4">Did you update your NFAAS?</h3>
+    <div class="flex gap-3 justify-center">
+      <button id="fpNfaasYes" class="fp-bubble px-5 py-2 font-semibold" style="background:var(--primary-color);color:#fff;border:none;cursor:pointer">Yes</button>
+      <button id="fpNfaasNo" class="fp-bubble px-5 py-2 font-semibold" style="cursor:pointer">No</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var thisMonth = new Date().toISOString().slice(0,7);
+  var key = 'fpNfaasLastAck';
+  try { if((localStorage.getItem(key)||'').slice(0,7) === thisMonth) return; } catch {}
+
+  // Don't show if the setup modal is visible (first-time user)
+  var setup = document.getElementById('fpSetupModal');
+  if(setup && !setup.classList.contains('hidden')) {
+    // Wait for setup to close, then show NFAAS
+    var obs = new MutationObserver(function(){
+      if(setup.classList.contains('hidden')){ obs.disconnect(); showNfaas(); }
+    });
+    obs.observe(setup, {attributes:true, attributeFilter:['class']});
+    return;
+  }
+
+  showNfaas();
+
+  function showNfaas(){
+    var modal = document.getElementById('fpNfaasModal');
+    var question = document.getElementById('fpNfaasQuestion');
+    if(!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    document.getElementById('fpNfaasYes').onclick = function(){
+      try { localStorage.setItem(key, today); } catch {}
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    };
+
+    document.getElementById('fpNfaasNo').onclick = function(){
+      question.textContent = 'Did you do it now?';
+    };
+  }
+})();
+</script>
+
+<!-- Welcome Modal (first-time users) -->
+<div id="fpWelcomeModal" class="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4" style="display:none">
+  <div class="rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto" style="background:var(--white)">
+    <div class="p-6 text-center border-b" style="border-color:var(--border-color)">
+      <div class="w-14 h-14 mx-auto mb-3 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"/></svg>
+      </div>
+      <h2 class="text-2xl font-bold" style="color:var(--text-primary)">Welcome to FocusPath!</h2>
+      <p class="text-sm mt-1" style="color:var(--text-secondary)">Your all-in-one offline study companion</p>
+    </div>
+    <div class="p-6">
+      <p class="text-sm mb-4" style="color:var(--text-secondary)">FocusPath helps you create, practice, and track your learning — all stored locally in your browser. No accounts, no cloud, fully offline.</p>
+      <h3 class="text-sm font-bold mb-3" style="color:var(--text-primary)">Here's what you can do:</h3>
+      <div class="grid grid-cols-2 gap-2 mb-4">
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style="background:var(--background-color);color:var(--text-primary)">🗂️ <span><strong>Flash Cards</strong></span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style="background:var(--background-color);color:var(--text-primary)">📝 <span><strong>Tests</strong></span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style="background:var(--background-color);color:var(--text-primary)">🍅 <span><strong>Pomodoro Timer</strong></span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style="background:var(--background-color);color:var(--text-primary)">🎯 <span><strong>Goal Tracker</strong></span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style="background:var(--background-color);color:var(--text-primary)">🧠 <span><strong>Recall Journal</strong></span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style="background:var(--background-color);color:var(--text-primary)">📅 <span><strong>Study Planner</strong></span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style="background:var(--background-color);color:var(--text-primary)">✅ <span><strong>Habit Tracker</strong></span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style="background:var(--background-color);color:var(--text-primary)">📝 <span><strong>Cornell Notes</strong></span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style="background:var(--background-color);color:var(--text-primary)">📊 <span><strong>Pre/Post Compare</strong></span></div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs" style="background:var(--background-color);color:var(--text-primary)">📈 <span><strong>Statistics</strong></span></div>
+      </div>
+      <p class="text-xs mb-5" style="color:var(--text-secondary)">Access all tools from the 🧰 button in the top-right of every page. For a detailed walkthrough of each feature, visit the <a href="help.html" style="color:var(--primary-color);font-weight:600;text-decoration:underline">Help &amp; Guide</a> page.</p>
+      <button id="fpWelcomeClose" class="w-full py-3 rounded-xl text-white font-semibold text-sm transition-colors" style="background:var(--primary-color)">Get Started</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var KEY = 'fpWelcomeSeen';
+  if(localStorage.getItem(KEY)) return;
+  var modal = document.getElementById('fpWelcomeModal');
+  if(!modal) return;
+  modal.style.display = '';
+  document.getElementById('fpWelcomeClose').onclick = function(){
+    localStorage.setItem(KEY, '1');
+    modal.style.display = 'none';
+  };
+  modal.addEventListener('click', function(e){
+    if(e.target === modal){
+      localStorage.setItem(KEY, '1');
+      modal.style.display = 'none';
+    }
+  });
+})();
+</script>
+<script src="tools-drawer.js"></script>
+</body>
+</html>

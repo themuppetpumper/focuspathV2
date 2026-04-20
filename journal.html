@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusPath — Recall Journal</title>
+<link rel="stylesheet" href="vendor/fonts/lexend.css"/>
+<link rel="stylesheet" href="vendor/fonts/gaegu.css"/>
+<script src="vendor/tailwind.js"></script>
+<script src="themes.js"></script>
+<script src="achievements.js"></script>
+<style type="text/tailwindcss">
+  :root{--primary-color:#0d78f2;--background-color:#f0f2f5;--text-primary:#111418;--text-secondary:#60748a;--white:#ffffff;--border-color:#e5e7eb}
+  body{font-family:'Lexend',sans-serif}
+</style>
+</head>
+<body class="bg-[var(--background-color)]">
+<div class="flex min-h-screen">
+  <aside class="w-64 hidden md:flex flex-col gap-4 p-4">
+    <div class="fp-section-card p-4 flex items-center gap-3">
+      <div class="w-8 h-8 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"/></svg>
+      </div>
+      <h1 class="text-[var(--text-primary)] text-2xl font-bold">FocusPath</h1>
+    </div>
+    <div class="flex flex-col gap-3">
+      <button id="btnNewEntry" class="fp-bubble-primary w-full flex items-center gap-3 px-4 py-3 font-medium">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <span>New Entry</span>
+      </button>
+    </div>
+    <div class="fp-section-card p-4">
+      <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase mb-2">Prompts</h4>
+      <div class="flex flex-col gap-1.5 text-sm">
+        <button data-prompt="What did I learn today?" class="prompt-btn text-left px-2 py-1.5 rounded-lg hover:bg-[var(--background-color)] text-[var(--text-primary)] transition-colors">💡 What did I learn?</button>
+        <button data-prompt="What concepts am I confused about?" class="prompt-btn text-left px-2 py-1.5 rounded-lg hover:bg-[var(--background-color)] text-[var(--text-primary)] transition-colors">🤔 What confuses me?</button>
+        <button data-prompt="Explain this topic as if teaching a friend:" class="prompt-btn text-left px-2 py-1.5 rounded-lg hover:bg-[var(--background-color)] text-[var(--text-primary)] transition-colors">🗣️ Teach it back</button>
+        <button data-prompt="What connections can I make to things I already know?" class="prompt-btn text-left px-2 py-1.5 rounded-lg hover:bg-[var(--background-color)] text-[var(--text-primary)] transition-colors">🔗 Make connections</button>
+        <button data-prompt="What questions would a test ask about this?" class="prompt-btn text-left px-2 py-1.5 rounded-lg hover:bg-[var(--background-color)] text-[var(--text-primary)] transition-colors">📝 Predict test questions</button>
+        <button data-prompt="Summarize today's study in 3 sentences." class="prompt-btn text-left px-2 py-1.5 rounded-lg hover:bg-[var(--background-color)] text-[var(--text-primary)] transition-colors">✏️ 3-sentence summary</button>
+      </div>
+    </div>
+    <div class="fp-section-card p-4">
+      <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase mb-2">Stats</h4>
+      <div class="text-sm space-y-1">
+        <div class="flex justify-between text-[var(--text-primary)]"><span>Total entries</span><span id="statTotal" class="font-semibold">0</span></div>
+        <div class="flex justify-between text-[var(--text-primary)]"><span>This week</span><span id="statWeek" class="font-semibold">0</span></div>
+        <div class="flex justify-between text-[var(--text-primary)]"><span>Streak</span><span id="statStreak" class="font-semibold">0 days</span></div>
+      </div>
+    </div>
+    <div class="mt-auto pt-2"></div>
+  </aside>
+
+  <div class="flex-1 flex flex-col">
+    <script src="icons.js"></script>
+    <div class="px-4 pt-4 flex items-center justify-center">
+      <nav class="flex gap-3">
+        <a href="home.html" title="Home" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-home"/></svg></a>
+        <a href="flashcards.html" title="Flashcards" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-flashcards"/></svg></a>
+        <a href="test.html" title="Tests" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-tests"/></svg></a>
+        <a href="stats.html" title="Stats" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-stats"/></svg></a>
+      </nav>
+    </div>
+
+    <main class="flex-1 p-6 lg:p-8">
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h2 class="text-[var(--text-primary)] text-3xl font-bold">Recall Journal</h2>
+        <button id="btnNewEntryMobile" class="fp-bubble-primary flex items-center gap-2 px-4 py-2 text-sm font-medium md:hidden">+ New Entry</button>
+      </div>
+
+      <!-- Entry editor -->
+      <div id="editor" class="hidden mb-6">
+        <div class="bg-[var(--white)] rounded-xl shadow-lg p-5" style="border:1px solid var(--border-color)">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-[var(--text-primary)] font-bold">New Entry</h3>
+            <button id="editorClose" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xl">&times;</button>
+          </div>
+          <div id="promptBanner" class="hidden bg-[var(--background-color)] rounded-lg px-3 py-2 text-sm text-[var(--text-secondary)] italic mb-3"></div>
+          <div class="mb-3">
+            <input id="entrySubject" type="text" maxlength="100" placeholder="Subject / Topic (optional)" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm mb-2"/>
+            <textarea id="entryBody" rows="6" maxlength="5000" placeholder="Write freely — dump everything you remember from your study session..." class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm resize-y"></textarea>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <span id="charCount" class="text-[var(--text-secondary)] text-xs">0 / 5000</span>
+            <div class="flex-1"></div>
+            <button id="btnSaveEntry" class="fp-bubble-primary px-5 py-2 text-sm font-medium">Save Entry</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Entries list -->
+      <div id="entriesList"></div>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORE = 'fpJournal';
+  function load(){ try { return JSON.parse(localStorage.getItem(STORE)||'[]'); } catch { return []; } }
+  function save(e){ localStorage.setItem(STORE, JSON.stringify(e)); }
+
+  const editor = document.getElementById('editor');
+  const body = document.getElementById('entryBody');
+  const subj = document.getElementById('entrySubject');
+  const banner = document.getElementById('promptBanner');
+  const charCount = document.getElementById('charCount');
+  let editingId = null;
+
+  function openEditor(prompt, entry){
+    editingId = entry ? entry.id : null;
+    subj.value = entry?.subject || '';
+    body.value = entry?.body || '';
+    if(prompt){ banner.textContent = prompt; banner.classList.remove('hidden'); }
+    else { banner.classList.add('hidden'); }
+    updateCount();
+    editor.classList.remove('hidden');
+    body.focus();
+  }
+  function closeEditor(){ editor.classList.add('hidden'); editingId = null; }
+
+  function updateCount(){ charCount.textContent = body.value.length + ' / 5000'; }
+  body.addEventListener('input', updateCount);
+
+  document.getElementById('btnNewEntry').addEventListener('click', () => openEditor(null, null));
+  document.getElementById('btnNewEntryMobile').addEventListener('click', () => openEditor(null, null));
+  document.getElementById('editorClose').addEventListener('click', closeEditor);
+
+  document.querySelectorAll('.prompt-btn').forEach(btn => {
+    btn.addEventListener('click', () => openEditor(btn.dataset.prompt, null));
+  });
+
+  document.getElementById('btnSaveEntry').addEventListener('click', () => {
+    const text = body.value.trim();
+    if(!text) return;
+    const entries = load();
+    const data = {
+      id: editingId || 'j_'+Date.now(),
+      subject: subj.value.trim(),
+      body: text,
+      prompt: banner.classList.contains('hidden') ? '' : banner.textContent,
+      created: editingId ? (entries.find(e=>e.id===editingId)?.created||Date.now()) : Date.now(),
+      updated: Date.now()
+    };
+    if(editingId){
+      const idx = entries.findIndex(e=>e.id===editingId);
+      if(idx>=0) entries[idx] = data;
+    } else { entries.unshift(data); }
+    save(entries);
+    closeEditor();
+    render();
+  });
+
+  function render(){
+    const entries = load();
+    updateStats(entries);
+
+    const list = document.getElementById('entriesList');
+    if(!entries.length){
+      list.innerHTML = `<div class="text-center py-20">
+        <div class="text-5xl mb-4">🧠</div>
+        <h3 class="text-[var(--text-primary)] text-xl font-semibold mb-2">Your journal is empty</h3>
+        <p class="text-[var(--text-secondary)] text-sm mb-4">After studying, brain-dump everything you remember.<br>This active recall practice boosts retention.</p>
+        <button onclick="document.getElementById('btnNewEntry').click()" class="fp-bubble-primary px-6 py-2 font-medium">Start Writing</button>
+      </div>`;
+      return;
+    }
+
+    let html = '';
+    let lastDate = '';
+    entries.forEach(e => {
+      const d = new Date(e.created);
+      const dateStr = d.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+      if(dateStr !== lastDate){
+        html += `<div class="text-[var(--text-secondary)] text-xs font-semibold uppercase mt-6 mb-2">${dateStr}</div>`;
+        lastDate = dateStr;
+      }
+      const time = d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      const preview = esc(e.body).substring(0,200) + (e.body.length>200?'...':'');
+      html += `<div class="bg-[var(--white)] rounded-xl shadow p-4 mb-3 hover:shadow-md transition-shadow" style="border:1px solid var(--border-color)">
+        <div class="flex items-start justify-between gap-3 mb-1">
+          <div class="flex-1 min-w-0">
+            ${e.subject ? '<h4 class="text-[var(--text-primary)] font-semibold truncate">'+esc(e.subject)+'</h4>' : ''}
+            ${e.prompt ? '<p class="text-[var(--text-secondary)] text-xs italic mb-1">'+esc(e.prompt)+'</p>' : ''}
+          </div>
+          <div class="flex gap-1 flex-shrink-0">
+            <span class="text-[var(--text-secondary)] text-xs mt-1">${time}</span>
+            <button data-edit="${e.id}" class="text-[var(--text-secondary)] hover:text-[var(--primary-color)] text-sm px-1" title="Edit">✏️</button>
+            <button data-del="${e.id}" class="text-[var(--text-secondary)] hover:text-red-500 text-sm px-1" title="Delete">🗑</button>
+          </div>
+        </div>
+        <p class="text-[var(--text-primary)] text-sm leading-relaxed whitespace-pre-line">${preview}</p>
+        <div class="text-[var(--text-secondary)] text-xs mt-2">${e.body.split(/\s+/).filter(w=>w).length} words</div>
+      </div>`;
+    });
+    list.innerHTML = html;
+
+    list.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const entry = entries.find(e=>e.id===btn.dataset.edit);
+        if(entry) openEditor(entry.prompt||null, entry);
+      });
+    });
+    list.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if(!confirm('Delete this journal entry?')) return;
+        save(load().filter(e=>e.id!==btn.dataset.del));
+        render();
+      });
+    });
+  }
+
+  function updateStats(entries){
+    const total = entries.length;
+    const now = new Date();
+    const weekAgo = new Date(now);
+    weekAgo.setDate(weekAgo.getDate()-7);
+    const week = entries.filter(e=>e.created>=weekAgo.getTime()).length;
+    // Streak calc
+    let streak = 0;
+    const daySet = new Set(entries.map(e => new Date(e.created).toDateString()));
+    const d = new Date();
+    // Allow today to not yet have an entry (check yesterday first if today missing)
+    if(!daySet.has(d.toDateString())) d.setDate(d.getDate()-1);
+    while(daySet.has(d.toDateString())){ streak++; d.setDate(d.getDate()-1); }
+
+    const ts = document.getElementById('statTotal');
+    const ws = document.getElementById('statWeek');
+    const ss = document.getElementById('statStreak');
+    if(ts) ts.textContent = total;
+    if(ws) ws.textContent = week;
+    if(ss) ss.textContent = streak + ' day' + (streak!==1?'s':'');
+  }
+
+  function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  render();
+})();
+</script>
+<script src="tools-drawer.js"></script>
+</body></html>

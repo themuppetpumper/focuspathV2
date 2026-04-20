@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusPath — Pomodoro Timer</title>
+<link rel="stylesheet" href="vendor/fonts/lexend.css"/>
+<link rel="stylesheet" href="vendor/fonts/gaegu.css"/>
+<script src="vendor/tailwind.js"></script>
+<script src="themes.js"></script>
+<script src="achievements.js"></script>
+<style type="text/tailwindcss">
+  :root{--primary-color:#0d78f2;--background-color:#f0f2f5;--text-primary:#111418;--text-secondary:#60748a;--white:#ffffff;--border-color:#e5e7eb}
+  body{font-family:'Lexend',sans-serif}
+</style>
+</head>
+<body class="bg-[var(--background-color)]">
+<div class="flex min-h-screen">
+  <aside class="w-64 hidden md:flex flex-col gap-4 p-4">
+    <div class="fp-section-card p-4 flex items-center gap-3">
+      <div class="w-8 h-8 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"/></svg>
+      </div>
+      <h1 class="text-[var(--text-primary)] text-2xl font-bold">FocusPath</h1>
+    </div>
+    <div class="flex flex-col gap-3">
+      <button id="btnModeWork" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 11h-2V7h2v6Zm0 4h-2v-2h2v2Z"/></svg>
+        <span>Focus (25 min)</span>
+      </button>
+      <button id="btnModeShort" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        <span>Short Break (5 min)</span>
+      </button>
+      <button id="btnModeLong" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17 18a5 5 0 0 0-10 0"/><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        <span>Long Break (15 min)</span>
+      </button>
+    </div>
+    <!-- Today's stats -->
+    <div class="fp-section-card p-4">
+      <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase mb-2">Today's Focus</h4>
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-[var(--text-secondary)]">Sessions</span><span id="statSessions" class="text-[var(--text-primary)] font-semibold">0</span></div>
+        <div class="flex justify-between"><span class="text-[var(--text-secondary)]">Focus Time</span><span id="statTime" class="text-[var(--text-primary)] font-semibold">0 min</span></div>
+        <div class="flex justify-between"><span class="text-[var(--text-secondary)]">Streak</span><span id="statStreak" class="text-[var(--text-primary)] font-semibold">0 days</span></div>
+      </div>
+    </div>
+    <div class="mt-auto pt-2"></div>
+  </aside>
+
+  <div class="flex-1 flex flex-col">
+    <script src="icons.js"></script>
+    <div class="px-4 pt-4 flex items-center justify-center">
+      <nav class="flex gap-3">
+        <a href="home.html" title="Home" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-home"/></svg></a>
+        <a href="flashcards.html" title="Flashcards" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-flashcards"/></svg></a>
+        <a href="test.html" title="Tests" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-tests"/></svg></a>
+        <a href="stats.html" title="Stats" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-stats"/></svg></a>
+      </nav>
+    </div>
+
+    <main class="flex-1 p-6 lg:p-8 flex flex-col items-center justify-center">
+      <h2 class="text-[var(--text-primary)] text-3xl font-bold mb-8">Pomodoro Timer</h2>
+
+      <!-- Timer circle -->
+      <div class="relative mb-8" style="width:280px;height:280px;">
+        <svg width="280" height="280" viewBox="0 0 280 280" class="transform -rotate-90">
+          <circle cx="140" cy="140" r="126" fill="none" stroke="var(--border-color)" stroke-width="10"/>
+          <circle id="timerRing" cx="140" cy="140" r="126" fill="none" stroke="var(--primary-color)" stroke-width="10" stroke-linecap="round" stroke-dasharray="791.68" stroke-dashoffset="0" style="transition:stroke-dashoffset .4s ease;"/>
+        </svg>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span id="timerDisplay" class="text-[var(--text-primary)] text-6xl font-bold tabular-nums">25:00</span>
+          <span id="timerLabel" class="text-[var(--text-secondary)] text-sm mt-1">Focus</span>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex gap-4 mb-6">
+        <button id="btnStart" class="fp-bubble-primary px-8 py-3 text-lg font-semibold">Start</button>
+        <button id="btnReset" class="fp-bubble px-6 py-3 text-lg font-medium">Reset</button>
+      </div>
+
+      <!-- Session dots -->
+      <div class="flex gap-2 mb-4">
+        <span class="text-[var(--text-secondary)] text-sm mr-2">Sessions:</span>
+        <div id="sessionDots" class="flex gap-2"></div>
+      </div>
+
+      <!-- Mobile stats -->
+      <div class="md:hidden mt-6 bg-[var(--white)] rounded-xl shadow-lg p-4 w-full max-w-xs">
+        <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase mb-2">Today's Focus</h4>
+        <div class="flex justify-around text-center">
+          <div><div id="mStatSessions" class="text-[var(--text-primary)] text-xl font-bold">0</div><div class="text-[var(--text-secondary)] text-xs">Sessions</div></div>
+          <div><div id="mStatTime" class="text-[var(--text-primary)] text-xl font-bold">0m</div><div class="text-[var(--text-secondary)] text-xs">Focus</div></div>
+          <div><div id="mStatStreak" class="text-[var(--text-primary)] text-xl font-bold">0</div><div class="text-[var(--text-secondary)] text-xs">Streak</div></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Theme toggle -->
+<script>
+(function(){
+  const themeBtn = document.getElementById('themeToggle');
+  if(themeBtn) themeBtn.addEventListener('click', e => { e.stopPropagation(); if(window.ThemeManager?.openPicker) window.ThemeManager.openPicker(); });
+})();
+</script>
+
+<script>
+(function(){
+  const WORK = 25*60, SHORT = 5*60, LONG = 15*60;
+  const CIRC = 2 * Math.PI * 126; // 791.68
+  const ring = document.getElementById('timerRing');
+  const display = document.getElementById('timerDisplay');
+  const label = document.getElementById('timerLabel');
+  const btnStart = document.getElementById('btnStart');
+  const btnReset = document.getElementById('btnReset');
+  const dots = document.getElementById('sessionDots');
+
+  let mode = 'work', total = WORK, remaining = WORK, running = false, interval = null;
+  let sessionCount = 0, focusSeconds = 0;
+  let savedFocusRemaining = null;
+  // Expose for tools-drawer.js broadcast
+  Object.defineProperty(window, '__fpSavedFocus', { get(){ return savedFocusRemaining; }, configurable: true });
+
+  // Load today's stats
+  const STORE_KEY = 'fpPomodoro';
+  function todayKey(){ return new Date().toISOString().slice(0,10); }
+  function loadStats(){
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)||'{}'); } catch { return {}; }
+  }
+  function saveStats(s){ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+  function todayStats(){
+    const s = loadStats();
+    return s[todayKey()] || { sessions:0, focusMin:0 };
+  }
+  function addSession(minutes){
+    const s = loadStats();
+    const k = todayKey();
+    if(!s[k]) s[k] = { sessions:0, focusMin:0 };
+    s[k].sessions++;
+    s[k].focusMin += minutes;
+    saveStats(s);
+    updateStatsUI();
+  }
+  function getStreak(){
+    const s = loadStats();
+    let streak = 0, d = new Date();
+    while(true){
+      const k = d.toISOString().slice(0,10);
+      if(s[k] && s[k].sessions > 0) { streak++; d.setDate(d.getDate()-1); }
+      else break;
+    }
+    return streak;
+  }
+  function updateStatsUI(){
+    const ts = todayStats();
+    const streak = getStreak();
+    const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+    set('statSessions', ts.sessions);
+    set('statTime', ts.focusMin + ' min');
+    set('statStreak', streak + ' days');
+    set('mStatSessions', ts.sessions);
+    set('mStatTime', ts.focusMin + 'm');
+    set('mStatStreak', streak);
+  }
+
+  function setMode(m){
+    // Save focus time if switching away from work mid-session
+    if (mode === 'work' && m !== 'work' && remaining > 0 && remaining < total) {
+      savedFocusRemaining = remaining;
+    }
+    mode = m;
+    clearInterval(interval);
+    running = false;
+    btnStart.textContent = 'Start';
+    if(m==='work'){
+      total = WORK;
+      if(savedFocusRemaining !== null){
+        remaining = savedFocusRemaining;
+        label.textContent = 'Resume Focus';
+        savedFocusRemaining = null;
+      } else {
+        remaining = WORK;
+        label.textContent = 'Focus';
+      }
+    }
+    else if(m==='short'){ total = SHORT; remaining = SHORT; label.textContent = 'Short Break'; }
+    else { total = LONG; remaining = LONG; label.textContent = 'Long Break'; }
+    updateDisplay();
+  }
+
+  function updateDisplay(){
+    const m = Math.floor(remaining/60), s = remaining%60;
+    display.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    const progress = 1 - remaining/total;
+    ring.setAttribute('stroke-dashoffset', (CIRC * (1-progress)).toFixed(2));
+    document.title = display.textContent + ' — FocusPath Pomodoro';
+  }
+
+  function start(){
+    if(running) { pause(); return; }
+    running = true;
+    btnStart.textContent = 'Pause';
+    interval = setInterval(()=>{
+      remaining--;
+      if(remaining <= 0){
+        remaining = 0;
+        updateDisplay();
+        stop();
+        onComplete();
+        return;
+      }
+      updateDisplay();
+    }, 1000);
+  }
+
+  function pause(){
+    running = false;
+    btnStart.textContent = 'Resume';
+    clearInterval(interval);
+  }
+
+  function stop(){
+    running = false;
+    btnStart.textContent = 'Start';
+    clearInterval(interval);
+    remaining = total;
+    updateDisplay();
+  }
+
+  function onComplete(){
+    // Audio beep
+    try {
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      [0,300,600].forEach(delay => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 830;
+        gain.gain.value = 0.3;
+        osc.start(ctx.currentTime + delay/1000);
+        osc.stop(ctx.currentTime + delay/1000 + 0.15);
+      });
+    } catch {}
+
+    if(mode === 'work'){
+      sessionCount++;
+      addSession(Math.round(total/60));
+      renderDots();
+      savedFocusRemaining = null; // completed session, nothing to resume
+      // Auto-switch to break
+      if(sessionCount % 4 === 0) setMode('long');
+      else setMode('short');
+    } else {
+      setMode('work');
+    }
+  }
+
+  function renderDots(){
+    dots.innerHTML = '';
+    for(let i = 0; i < Math.min(sessionCount, 12); i++){
+      const dot = document.createElement('div');
+      dot.style.cssText = 'width:12px;height:12px;border-radius:50%;background:var(--primary-color);';
+      if(i > 0 && i % 4 === 0) dot.style.marginLeft = '8px';
+      dots.appendChild(dot);
+    }
+    if(sessionCount === 0){
+      for(let i = 0; i < 4; i++){
+        const dot = document.createElement('div');
+        dot.style.cssText = 'width:12px;height:12px;border-radius:50%;border:2px solid var(--border-color);';
+        dots.appendChild(dot);
+      }
+    }
+  }
+
+  // Wire buttons
+  btnStart.addEventListener('click', start);
+  btnReset.addEventListener('click', () => { stop(); sessionCount = 0; savedFocusRemaining = null; renderDots(); });
+  document.getElementById('btnModeWork').addEventListener('click', () => setMode('work'));
+  document.getElementById('btnModeShort').addEventListener('click', () => setMode('short'));
+  document.getElementById('btnModeLong').addEventListener('click', () => setMode('long'));
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if(e.code === 'Space' && !['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)){
+      e.preventDefault(); start();
+    }
+  });
+
+  // Init
+  updateDisplay();
+  renderDots();
+  updateStatsUI();
+})();
+</script>
+<script src="tools-drawer.js"></script>
+</body></html>

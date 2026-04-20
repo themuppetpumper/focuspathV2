@@ -1,0 +1,961 @@
+﻿<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusPath — Statistics</title>
+<link rel="stylesheet" href="vendor/fonts/lexend.css"/>
+<link rel="stylesheet" href="vendor/fonts/gaegu.css"/>
+<script src="vendor/tailwind.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
+<script src="themes.js"></script>
+<script src="achievements.js"></script>
+<style type="text/tailwindcss">
+  :root{--primary-color:#0d78f2;--background-color:#f0f2f5;--text-primary:#111418;--text-secondary:#60748a;--white:#ffffff;--border-color:#e5e7eb}
+  body{font-family:'Lexend',sans-serif}
+  .hover-bg-primary-light:hover{background-color:#e6f2ff}
+  .nav-btn-active{background:rgba(13,120,242,0.10); color:var(--primary-color);}  
+</style>
+</head>
+<body class="bg-[var(--background-color)]">
+<!-- Hard Reset now lives in sidebar bottom -->
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="w-64 hidden md:flex flex-col gap-4 p-4">
+    <div class="fp-section-card p-4 flex items-center gap-3">
+      <div class="w-8 h-8 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"/></svg>
+      </div>
+      <h1 class="text-[var(--text-primary)] text-2xl font-bold">FocusPath</h1>
+    </div>
+
+    <div class="flex flex-col gap-3">
+  <button id="btnStatHome" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors nav-group">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5z"/></svg>
+        <span>Stats Home</span>
+      </button>
+  <button id="btnStatTests" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors nav-group">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M5 9h3v10H5zM10.5 4h3v15h-3zM16 13h3v6h-3z"/></svg>
+        <span>Test Stats</span>
+      </button>
+  <button id="btnStatFlash" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors nav-group">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v12H4zM4 20h16v-2H4z"/></svg>
+        <span>Flashcard Stats</span>
+      </button>
+  <button id="btnStatTools" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors nav-group">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.7 2.8A10 10 0 0 0 2 12.8h4a6 6 0 0 1 5.7-6v-4ZM22 12.8a10 10 0 0 0-9.7-10v4a6 6 0 0 1 5.7 6h4ZM12.3 22.8a10 10 0 0 0 9.7-10h-4a6 6 0 0 1-5.7 6v4ZM2 12.8a10 10 0 0 0 9.7 10v-4a6 6 0 0 1-5.7-6H2Z"/></svg>
+        <span>Tools Stats</span>
+      </button>
+  <button id="btnStatTrophies" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors nav-group">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h14v3h2a1 1 0 0 1 1 1c0 4.418-2.239 8-5 8-1.357 0-2.59-.71-3.5-1.874A4.494 4.494 0 0 1 9 15C6.239 15 4 11.418 4 7a1 1 0 0 1 1-1h0V3Zm2 2v1c0 3.309 1.567 6 3 6 .42 0 1.362-.675 2-1.657V5H7Zm6 0v5.343C13.638 11.325 14.58 12 15 12c1.433 0 3-2.691 3-6V5h-5ZM8 17h8v2a4 4 0 0 1-4 4 4 4 0 0 1-4-4v-2Z"/></svg>
+        <span>Trophy Room</span>
+      </button>
+    </div>
+
+    <div class="mt-auto pt-2 flex flex-col items-center gap-3 w-full">
+      <button id="btnColorMeBlind" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors" title="Test your color vision... or lack thereof">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="9" r="3" fill="#e74c3c"/><circle cx="15" cy="9" r="3" fill="#2ecc71"/><circle cx="12" cy="14" r="3" fill="#3498db"/></svg>
+        <span>Color Me Blind</span>
+      </button>
+      <button id="btnGlobalReset" title="Hard Reset: Erase tests, attempts, flashcards & subjects. Achievements stay." class="fp-bubble px-4 py-2 text-xs text-red-600">
+        Hard Reset
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main column -->
+  <div class="flex-1 flex flex-col">
+    <script src="icons.js"></script>
+    <!-- Top nav -->
+  <div class="px-4 pt-4 flex items-center justify-center">
+      <nav class="flex gap-3">
+        <a href="home.html" title="Home" aria-label="Home" class="fp-bubble-circle"><svg class="fp-icon" aria-hidden="true"><use href="#ico-home"/></svg></a>
+        <a href="test.html" title="Tests" aria-label="Tests" class="fp-bubble-circle"><svg class="fp-icon" aria-hidden="true"><use href="#ico-tests"/></svg></a>
+        <a href="flashcards.html" title="Flashcards" aria-label="Flashcards" class="fp-bubble-circle"><svg class="fp-icon" aria-hidden="true"><use href="#ico-flashcards"/></svg></a>
+      </nav>
+      <!-- Removed trailing profile bubble -->
+    </div>
+
+    <main class="flex-1 p-6 lg:p-8">
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h2 id="pageTitle" class="text-[var(--text-primary)] text-3xl font-bold">Statistics</h2>
+        <button id="btnColorMeBlindMobile" class="fp-bubble flex items-center gap-2 px-3 py-2 text-sm font-medium md:hidden" title="Test your color vision... or lack thereof">
+          <span>🎨</span><span>Color Me Blind</span>
+        </button>
+      </div>
+      <div id="statsContent"></div>
+    </main>
+  </div>
+</div>
+
+<script>
+// Lightweight DEV banner (if ThemeManager loaded Dev tools)
+try { if (window.FPDev && window.FPDev.isDev && window.FPDev.isDev()) { const b=document.createElement('div'); b.textContent='DEV MODE'; b.style.cssText='position:fixed;right:8px;bottom:8px;z-index:2000;background:rgba(16,185,129,0.15);color:#065f46;border:1px solid rgba(16,185,129,0.4);font:700 10px/1.2 system-ui, sans-serif;letter-spacing:.08em;padding:6px 8px;border-radius:8px;backdrop-filter:blur(4px)'; document.body.appendChild(b);} } catch {}
+// Theme drawer toggle
+(function(){
+  const themeBtn = document.getElementById('themeToggle');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if(window.ThemeManager && window.ThemeManager.openPicker) window.ThemeManager.openPicker();
+    });
+  }
+})();
+// --- Shared helpers ---
+let SUBJECT_COLORS={'(No Subject)':'#94a3b8'};
+try { const userMap = JSON.parse(localStorage.getItem('fpSubjectColors')||'{}'); SUBJECT_COLORS = {...SUBJECT_COLORS, ...userMap}; } catch {}
+// --- Purge deprecated secret achievement/theme artifacts ---
+try {
+  // Remove obsolete unlock flag
+  localStorage.removeItem('fpFocusMasterUnlocked');
+  // Filter out legacy secret badge id if present
+  const persisted = JSON.parse(localStorage.getItem('fpPersistedBadges')||'[]');
+  const filtered = Array.isArray(persisted)? persisted.filter(id=> id !== 'focus_master_secret') : [];
+  if(filtered.length !== persisted.length){
+    localStorage.setItem('fpPersistedBadges', JSON.stringify(filtered));
+  }
+} catch {}
+function loadTests(){ try { return JSON.parse(localStorage.getItem('tests')||'[]'); } catch { return []; } }
+function loadAttempts(){ try { return JSON.parse(localStorage.getItem('testAttempts')||'[]'); } catch { return []; } }
+function loadCardSets(){ try { return JSON.parse(localStorage.getItem('flashcardSets')||'[]'); } catch { return []; } }
+function loadFlashcardSessions(){ try { return JSON.parse(localStorage.getItem('flashcardSessions')||'[]'); } catch { return []; } }
+function dayKeyLocal(d){ const dt=new Date(d); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; }
+function fmtSecondsToHMS(sec){ if(!sec||sec<=0) return '0s'; const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=Math.floor(sec%60); return [h?`${h}h`:null,m?`${m}m`:null,`${s}s`].filter(Boolean).join(' ');} 
+let __statsCharts=[]; function destroyStatsCharts(){ try{__statsCharts.forEach(c=>c && c.destroy && c.destroy());}catch{} __statsCharts=[]; }
+
+// --- Test Stats ---
+function renderTestStats(){ const primary=document.getElementById('statsContent'); if(!primary) return; destroyStatsCharts(); const tests=loadTests(); const attempts=loadAttempts(); const testById=new Map(tests.map(t=>[String(t.id),t]));
+  const testsCreated=tests.length; const testsTaken=attempts.length; const daysStudied=attempts.length? new Set(attempts.map(a=>dayKeyLocal(a.date))).size:0; const avgTime=attempts.length? Math.round(attempts.reduce((s,a)=>s+(a.timeTaken||0),0)/attempts.length):0; const avgScorePct=attempts.length? (attempts.reduce((s,a)=>s + (a.total? (a.score/a.total)*100:0),0)/attempts.length):0;
+  const byDay=new Map(); attempts.forEach(a=>{ const t=testById.get(String(a.testId)); const subj=(t&&t.subject)||'(No Subject)'; const day=dayKeyLocal(a.date); const pct=a.total?(a.score/a.total)*100:0; if(!byDay.has(day)) byDay.set(day,new Map()); const sub=byDay.get(day); if(!sub.has(subj)) sub.set(subj,[]); sub.get(subj).push(pct); });
+  const base=new Date(); base.setHours(0,0,0,0); const last14=Array.from({length:14}).map((_,i)=>{ const d=new Date(base); d.setDate(d.getDate()-(13-i)); return dayKeyLocal(d); });
+  const subjectsSeen=new Set(); byDay.forEach(m=>m.forEach((_,s)=>subjectsSeen.add(s))); const lineDatasets=[...subjectsSeen].map(subj=>({ label:subj, data:last14.map(d=>{ const m=byDay.get(d); if(!m) return null; const arr=m.get(subj)||[]; return arr.length? arr.reduce((s,v)=>s+v,0)/arr.length:null; }), spanGaps:true, borderColor:SUBJECT_COLORS[subj]||'#6366f1', backgroundColor:(SUBJECT_COLORS[subj]||'#6366f1')+'26', tension:.35, fill:false, pointRadius:2 }));
+  const subjScores=new Map(); attempts.forEach(a=>{ const t=testById.get(String(a.testId)); const subj=(t&&t.subject)||'(No Subject)'; const pct=a.total?(a.score/a.total)*100:0; if(!subjScores.has(subj)) subjScores.set(subj,{sum:0,count:0}); const o=subjScores.get(subj); o.sum+=pct; o.count++; });
+  const subjLabels=[...subjScores.keys()]; const subjData=subjLabels.map(s=>subjScores.get(s).sum/subjScores.get(s).count); const subjColors=subjLabels.map(s=>SUBJECT_COLORS[s]||'#6366f1');
+  const lastAttempts=attempts.slice(-10); const timeLabels=lastAttempts.map(a=>new Date(a.date).toLocaleDateString()); const timeData=lastAttempts.map(a=>a.timeTaken||0); const timeColors=timeLabels.map((_,i)=>{ const a=lastAttempts[i]; const t=testById.get(String(a.testId)); const subj=(t&&t.subject)||'(No Subject)'; return SUBJECT_COLORS[subj]||'#6366f1'; });
+
+  // --- Extended Analysis ---
+  // Per subject detailed metrics
+  const subjectMetrics = {}; // subj -> {attempts, sumPct, minPct, maxPct, lastPct, lastDate}
+  attempts.forEach(a=>{ const t=testById.get(String(a.testId)); const subj=(t&&t.subject)||'(No Subject)'; const pct=a.total?(a.score/a.total)*100:0; if(!subjectMetrics[subj]) subjectMetrics[subj]={attempts:0,sumPct:0,minPct:101,maxPct:-1,lastDate:null,lastPct:null}; const m=subjectMetrics[subj]; m.attempts++; m.sumPct+=pct; if(pct<m.minPct) m.minPct=pct; if(pct>m.maxPct) m.maxPct=pct; if(!m.lastDate || new Date(a.date)>new Date(m.lastDate)){ m.lastDate=a.date; m.lastPct=pct; } });
+  Object.keys(subjectMetrics).forEach(s=>{ const m=subjectMetrics[s]; m.avgPct = m.attempts? m.sumPct/m.attempts : 0; m.range = (m.maxPct>=0 && m.minPct<=100)? (m.maxPct - m.minPct):0; });
+  // Best / Needs Improvement
+  let bestSubject=null, worstSubject=null; Object.entries(subjectMetrics).forEach(([subj,m])=>{ if(m.attempts===0) return; if(!bestSubject || m.avgPct>bestSubject.avgPct) bestSubject={subject:subj,...m}; if(!worstSubject || m.avgPct<worstSubject.avgPct) worstSubject={subject:subj,...m}; });
+  // Trend: last 5 vs previous 5
+  const sortedAttempts=[...attempts].sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const last5=sortedAttempts.slice(-5); const prev5=sortedAttempts.slice(-10,-5);
+  function avg(list){ return list.length? list.reduce((s,a)=> s + (a.total? (a.score/a.total)*100:0),0)/list.length : 0; }
+  const last5Avg=avg(last5); const prev5Avg=avg(prev5); const trendDelta = last5.length && prev5.length? (last5Avg - prev5Avg):0;
+  // Overall consistency (std dev of all attempt %)
+  const allPcts = attempts.map(a=> a.total? (a.score/a.total)*100:0); const meanAll = allPcts.length? allPcts.reduce((s,v)=>s+v,0)/allPcts.length:0; const variance = allPcts.length? allPcts.reduce((s,v)=> s + Math.pow(v-meanAll,2),0)/allPcts.length:0; const stdDev = Math.sqrt(variance);
+  // Score distribution buckets (0-10,10-20,...)
+  const distBuckets = Array.from({length:10}).map(()=>0); allPcts.forEach(p=>{ const idx=Math.min(9, Math.floor(p/10)); distBuckets[idx]++; });
+  // Suggestions
+  const suggestions=[]; if(worstSubject && worstSubject.avgPct<70) suggestions.push(`Focus on ${worstSubject.subject} (avg ${(worstSubject.avgPct).toFixed(1)}%). Review mistakes and retake related tests.`);
+  if(trendDelta < -5) suggestions.push(`Recent performance dropped by ${Math.abs(trendDelta).toFixed(1)} pts. Revisit recent test materials.`);
+  if(stdDev>15) suggestions.push(`High score variability (σ=${stdDev.toFixed(1)}). Aim for more consistent practice sessions.`);
+  if(bestSubject && bestSubject.avgPct>=85) suggestions.push(`Great job in ${bestSubject.subject}. Consider increasing difficulty to keep progressing.`);
+  if(!suggestions.length) suggestions.push('Keep up the steady progress! Try scheduling regular review sessions to maintain momentum.');
+
+  const softResetBar = `<div class="mb-6 flex flex-wrap items-center gap-3"><button id='btnSoftResetTestsStats' class='fp-bubble px-4 py-2 text-xs bg-red-50 text-red-700 hover:bg-red-100'>Soft Reset Tests</button><span class='text-[10px] text-[var(--text-secondary)]'>Hides existing tests on the Tests page; historical stats remain.</span></div>`;
+  primary.innerHTML= softResetBar + `<div class='space-y-8'>
+    <div class='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+      <div class='p-4 bg-white rounded-xl shadow'><div class='text-xs text-[var(--text-secondary)] uppercase font-semibold'>Tests Created</div><div class='mt-2 text-2xl font-bold text-[var(--text-primary)]'>${testsCreated}</div></div>
+      <div class='p-4 bg-white rounded-xl shadow'><div class='text-xs text-[var(--text-secondary)] uppercase font-semibold'>Tests Taken</div><div class='mt-2 text-2xl font-bold text-[var(--text-primary)]'>${testsTaken}</div></div>
+      <div class='p-4 bg-white rounded-xl shadow'><div class='text-xs text-[var(--text-secondary)] uppercase font-semibold'>Study Days</div><div class='mt-2 text-2xl font-bold text-[var(--text-primary)]'>${daysStudied}</div></div>
+      <div class='p-4 bg-white rounded-xl shadow'><div class='text-xs text-[var(--text-secondary)] uppercase font-semibold'>Avg Time (s)</div><div class='mt-2 text-2xl font-bold text-[var(--text-primary)]'>${avgTime}</div></div>
+    </div>
+    <div class='grid gap-6 lg:grid-cols-3 mt-8'>
+      <div class='p-4 bg-white rounded-xl shadow lg:col-span-2'>
+        <h3 class='text-sm font-semibold text-[var(--text-primary)] mb-3'>Scores Over Time</h3>
+        <div class='h-80'><canvas id='scoresChart'></canvas></div>
+      </div>
+      <div class='p-4 bg-white rounded-xl shadow'>
+        <h3 class='text-sm font-semibold text-[var(--text-primary)] mb-3'>Subjects Breakdown</h3>
+        <div class='h-64'><canvas id='subjectsChart'></canvas></div>
+      </div>
+    </div>
+    <div class='grid gap-6 lg:grid-cols-3 mt-8'>
+      <div class='p-4 bg-white rounded-xl shadow'><h3 class='text-sm font-semibold text-[var(--text-primary)] mb-3'>Avg Score (%)</h3><div class='text-3xl font-bold text-[var(--text-primary)]'>${avgScorePct.toFixed(1)}</div></div>
+      <div class='p-4 bg-white rounded-xl shadow'><h3 class='text-sm font-semibold text-[var(--text-primary)] mb-3'>Attempts Distribution</h3><div class='h-48'><canvas id='scoreDistChart'></canvas></div></div>
+      <div class='p-4 bg-white rounded-xl shadow'><h3 class='text-sm font-semibold text-[var(--text-primary)] mb-3'>Time per Attempt</h3><div class='h-48'><canvas id='timeChart'></canvas></div></div>
+    </div>
+    <div class='p-4 bg-white rounded-xl shadow mt-8'>
+      <h3 class='text-sm font-semibold text-[var(--text-primary)] mb-2'>Suggestions</h3>
+      <ul class='list-disc pl-5 space-y-1 text-xs text-[var(--text-secondary)]'>${suggestions.map(s=>`<li>${s}</li>`).join('')}</ul>
+    </div>
+  </div>`;
+  const scoresCtx=document.getElementById('scoresChart')?.getContext('2d'); if(scoresCtx){ __statsCharts.push(new Chart(scoresCtx,{type:'line',data:{labels:last14.map(d=>{const [y,m,dd]=d.split('-').map(Number);return new Date(y,m-1,dd).toLocaleDateString();}),datasets:lineDatasets},options:{responsive:true,maintainAspectRatio:false,scales:{y:{suggestedMin:0,suggestedMax:100,ticks:{callback:v=>v+'%'}}},plugins:{legend:{display:true,position:'bottom'},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${(ctx.parsed.y??0).toFixed(1)}%`}}}}})); }
+  const subjCtx=document.getElementById('subjectsChart')?.getContext('2d'); if(subjCtx){ __statsCharts.push(new Chart(subjCtx,{type:'doughnut',data:{labels:subjLabels,datasets:[{data:subjData.map(v=>Number.isFinite(v)?Number(v.toFixed(1)):0),backgroundColor:subjColors,borderColor:subjColors,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},cutout:'60%'}})); }
+  const timeCtx=document.getElementById('timeChart')?.getContext('2d'); if(timeCtx){ __statsCharts.push(new Chart(timeCtx,{type:'bar',data:{labels:timeLabels,datasets:[{label:'Seconds',data:timeData,backgroundColor:timeColors,borderColor:timeColors,borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:(ctx)=>{ const a=lastAttempts[ctx.dataIndex]; const t=testById.get(String(a.testId)); const name=(t&&t.name)||a.testName||'Attempt'; return `${name}: ${fmtSecondsToHMS(ctx.parsed.y||0)}`; }}}},scales:{y:{beginAtZero:true}}}})); }
+  const distCtx=document.getElementById('scoreDistChart')?.getContext('2d'); if(distCtx){ __statsCharts.push(new Chart(distCtx,{type:'bar',data:{labels:distBuckets.map((_,i)=> i*10+'-'+(i===9? '100': (i*10+9))),datasets:[{label:'Attempts',data:distBuckets,backgroundColor:'#0d78f2'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,precision:0}}}})); }
+  // Attach listener after content + charts mounted
+  document.getElementById('btnSoftResetTestsStats')?.addEventListener('click', ()=>{
+    if(!confirm('Soft reset tests? Existing tests / attempts will be hidden on the Tests page but remain in global stats. Continue?')) return;
+    try { localStorage.setItem('fpSoftResetTests','1'); localStorage.setItem('fpSoftResetTestsTs', Date.now().toString()); } catch {}
+    alert('Soft reset applied. Visit the Tests page to view a fresh slate.');
+  });
+}
+
+// --- Flashcard Stats ---
+function renderFlashcardStats(){ const primary=document.getElementById('statsContent'); if(!primary) return; destroyStatsCharts(); const sets=loadCardSets(); const sessions=loadFlashcardSessions(); const totalSets=sets.length; const totalSessions=sessions.length; const uniqueDays=sessions.length? new Set(sessions.map(s=>dayKeyLocal(s.date))).size:0; const totalCardsStudied=sessions.reduce((s,a)=>s+(a.cardsSeen||0),0); const avgSessionCards=sessions.length? Math.round(totalCardsStudied/sessions.length):0; const timeSpent=sessions.reduce((s,a)=>s+(a.durationSeconds||0),0); const avgSessionTime=sessions.length? Math.round(timeSpent/sessions.length):0; const subjectAgg={}; sets.forEach(set=>{ const subj=set.subject||'Other'; if(!subjectAgg[subj]) subjectAgg[subj]={cards:0,sessions:0}; subjectAgg[subj].cards+=(set.cards||[]).length; }); sessions.forEach(s=>{ const subj=s.subject||'Other'; if(!subjectAgg[subj]) subjectAgg[subj]={cards:0,sessions:0}; subjectAgg[subj].sessions++; });
+  // Extended analytics
+  const attempts = loadAttempts();
+  // Test performance per subject
+  const testPerf = {}; // subj -> {sumPct,count}
+  attempts.forEach(a=>{ const pct = a.total? (a.score/a.total)*100:0; const t = (loadTests().find(tst=>String(tst.id)===String(a.testId))||{}); const subj=(t.subject)||'(No Subject)'; if(!testPerf[subj]) testPerf[subj]={sumPct:0,count:0}; testPerf[subj].sumPct+=pct; testPerf[subj].count++; });
+  const subjMetrics={}; sessions.forEach(s=>{ const subj=s.subject||'Other'; if(!subjMetrics[subj]) subjMetrics[subj]={sessions:0,sumCards:0,sumDuration:0,maxCards:0,minCards:null,lastDate:null,lastCards:0}; const m=subjMetrics[subj]; m.sessions++; const cs=s.cardsSeen||0; m.sumCards+=cs; m.sumDuration+=(s.durationSeconds||0); if(cs>m.maxCards) m.maxCards=cs; if(m.minCards===null||cs<m.minCards) m.minCards=cs; if(!m.lastDate || new Date(s.date)>new Date(m.lastDate)){ m.lastDate=s.date; m.lastCards=cs; } });
+  Object.keys(subjMetrics).forEach(k=>{ const m=subjMetrics[k]; m.avgCards = m.sessions? m.sumCards/m.sessions : 0; m.avgDuration = m.sessions? m.sumDuration/m.sessions : 0; m.range = (m.minCards!=null)? (m.maxCards - m.minCards):0; });
+  let bestSubj=null, weakSubj=null; Object.entries(subjMetrics).forEach(([k,m])=>{ if(m.sessions===0) return; if(!bestSubj || m.avgCards>bestSubj.avgCards) bestSubj={subject:k,...m}; if(!weakSubj || m.avgCards<weakSubj.avgCards) weakSubj={subject:k,...m}; });
+  const sortedSessions=[...sessions].sort((a,b)=> new Date(a.date)-new Date(b.date)); const fcLast5=sortedSessions.slice(-5); const fcPrev5=sortedSessions.slice(-10,-5); function avgCards(list){ return list.length? list.reduce((s,a)=> s + (a.cardsSeen||0),0)/list.length : 0; } const fcLastAvg=avgCards(fcLast5); const fcPrevAvg=avgCards(fcPrev5); const fcTrendDelta = (fcLast5.length && fcPrev5.length)? (fcLastAvg - fcPrevAvg):0;
+  const cardCounts=sessions.map(s=>s.cardsSeen||0); const meanCards=cardCounts.length? cardCounts.reduce((s,v)=>s+v,0)/cardCounts.length:0; const varCards=cardCounts.length? cardCounts.reduce((s,v)=> s + Math.pow(v-meanCards,2),0)/cardCounts.length:0; const stdCards=Math.sqrt(varCards);
+  const bucketSize=5; const maxCardsObserved=Math.max(0,...cardCounts); const bucketCount=Math.min(12, Math.ceil(maxCardsObserved / bucketSize)+1); const sizeBuckets=Array.from({length:bucketCount}).map(()=>0); cardCounts.forEach(c=>{ const idx=Math.min(bucketCount-1, Math.floor(c / bucketSize)); sizeBuckets[idx]++; }); const sizeLabels=sizeBuckets.map((_,i)=> i===bucketCount-1? `${i*bucketSize}+` : `${i*bucketSize}-${i*bucketSize+bucketSize-1}`);
+  // Correlate study vs test performance
+  const studyFocusShare = {}; // subj -> % of total cards studied
+  Object.keys(subjMetrics).forEach(subj=>{ const m=subjMetrics[subj]; studyFocusShare[subj] = totalCardsStudied? (m.sumCards/totalCardsStudied)*100:0; });
+  const totalFocusAvg = Object.keys(studyFocusShare).length? Object.values(studyFocusShare).reduce((a,b)=>a+b,0)/Object.keys(studyFocusShare).length:0;
+  function testAvg(subj){ const tp=testPerf[subj]; return tp? tp.sumPct/tp.count : null; }
+  // Build correlation dataset (bubble: x = study focus %, y = test avg %, r = sessions)
+  const correlationPoints = Object.keys({...studyFocusShare, ...testPerf}).map(subj=>{ const x=studyFocusShare[subj]||0; const y=testAvg(subj); const m=subjMetrics[subj]; const r = m? Math.min(40, 8 + m.sessions*2):8; return (y==null)? null : { x, y, r, subj }; }).filter(Boolean);
+  // Status classification
+  const correlationStatus = {}; // subj -> string
+  correlationPoints.forEach(p=>{ const subj=p.subj; const m=subjMetrics[subj]||{}; const tAvg = p.y; const focus= p.x; let status='Balanced'; if(tAvg<70 && focus < totalFocusAvg*0.9) status='Understudied'; else if(tAvg<70 && focus >= totalFocusAvg*0.9) status='Review Effectiveness'; else if(tAvg>=85 && focus>=totalFocusAvg) status='Strong'; else if(tAvg>=70 && tAvg<80 && focus< totalFocusAvg*0.8) status='Could Increase Volume'; correlationStatus[subj]=status; });
+  // Suggestions augmented by correlation
+  const fcSuggestions=[]; Object.entries(correlationStatus).forEach(([subj,st])=>{ if(st==='Understudied') fcSuggestions.push(`Boost study time for ${subj}; low test performance with limited card coverage.`); if(st==='Review Effectiveness') fcSuggestions.push(`Refine strategies in ${subj}; study volume present but test scores lag.`); });
+  if(weakSubj && weakSubj.avgCards< (bestSubj? bestSubj.avgCards*0.6:5)) fcSuggestions.push(`Increase study depth for ${weakSubj.subject}. Average cards/session ${(weakSubj.avgCards).toFixed(1)} is low.`); if(fcTrendDelta < -3) fcSuggestions.push(`Recent sessions show fewer cards (${fcTrendDelta.toFixed(1)} vs previous). Consider longer sessions.`); if(stdCards > (meanCards*0.75) && meanCards>0) fcSuggestions.push(`High variability in session size (σ=${stdCards.toFixed(1)}). Set a baseline number of cards (e.g. ${Math.max(5, Math.round(meanCards*0.7))}).`); if(bestSubj && bestSubj.avgCards>=15) fcSuggestions.push(`Strong volume in ${bestSubj.subject}. Add spaced repetition to reinforce retention.`); if(!fcSuggestions.length) fcSuggestions.push('Consistent flashcard practice. Maintain rhythm and mix subjects to avoid plateau.');
+  // Enrich table with test average + focus + status
+  const softResetBar = `<div class="mb-6 flex flex-wrap items-center gap-3"><button id='btnSoftResetFlashStats' class='fp-bubble px-4 py-2 text-xs bg-red-50 text-red-700 hover:bg-red-100'>Soft Reset Flashcards</button><span class='text-[10px] text-[var(--text-secondary)]'>Hides existing sets on the Flashcards page; historical stats remain.</span></div>`;
+  primary.innerHTML= softResetBar + `<div class='space-y-8'>
+    <div class='bg-white rounded-xl shadow p-6 space-y-6'>
+      <div class='flex items-center justify-between flex-wrap gap-4'>
+        <h3 class='font-semibold text-[var(--text-primary)]'>In-Depth Flashcard Analysis</h3>
+        <div class='flex gap-3 text-xs'>
+          <span class='px-2 py-1 rounded bg-[var(--background-color)]'>Best: ${bestSubj? bestSubj.subject+' '+bestSubj.avgCards.toFixed(1)+' avg cards':'—'}</span>
+          <span class='px-2 py-1 rounded bg-[var(--background-color)]'>Needs Work: ${weakSubj? weakSubj.subject+' '+weakSubj.avgCards.toFixed(1)+' avg cards':'—'}</span>
+          <span class='px-2 py-1 rounded bg-[var(--background-color)]'>Trend: ${(fcLast5.length && fcPrev5.length)? (fcTrendDelta>0? '+'+fcTrendDelta.toFixed(1): fcTrendDelta.toFixed(1))+' cards':'—'}</span>
+          <span class='px-2 py-1 rounded bg-[var(--background-color)]'>Consistency σ: ${stdCards.toFixed(1)}</span>
+        </div>
+      </div>
+      <div class='grid lg:grid-cols-3 gap-6'>
+        <div class='lg:col-span-2'>
+          <h4 class='text-sm font-medium mb-2 text-[var(--text-primary)]'>Subject Practice Depth & Performance Correlation</h4>
+          <div class='overflow-auto rounded-lg border border-[var(--border-color)]'>
+            <table class='min-w-full text-sm'>
+              <thead class='bg-[var(--background-color)] text-[var(--text-secondary)]'>
+                <tr><th class='text-left px-3 py-2 font-semibold'>Subject</th><th class='text-left px-3 py-2 font-semibold'>Sessions</th><th class='text-left px-3 py-2 font-semibold'>Avg Cards</th><th class='text-left px-3 py-2 font-semibold'>Study Focus %</th><th class='text-left px-3 py-2 font-semibold'>Test Avg %</th><th class='text-left px-3 py-2 font-semibold'>Status</th><th class='text-left px-3 py-2 font-semibold'>Best Cards</th><th class='text-left px-3 py-2 font-semibold'>Low Cards</th><th class='text-left px-3 py-2 font-semibold'>Last Cards</th><th class='text-left px-3 py-2 font-semibold'>Last Date</th><th class='text-left px-3 py-2 font-semibold'>Range</th></tr>
+              </thead>
+              <tbody>
+                ${Object.keys(subjMetrics).length? Object.entries(subjMetrics).sort((a,b)=> (testAvg(b[0])||0) - (testAvg(a[0])||0)).map(([subj,m])=>{ const tA=testAvg(subj); const focus=studyFocusShare[subj]||0; const status=correlationStatus[subj]||'—'; const badgeColor= status==='Understudied'?'bg-amber-100 text-amber-700': status==='Review Effectiveness'?'bg-red-100 text-red-600': status==='Strong'?'bg-emerald-100 text-emerald-600': status==='Could Increase Volume'?'bg-indigo-100 text-indigo-600':'bg-gray-100 text-gray-500'; return `<tr class='border-t border-[var(--border-color)]'>
+                  <td class='px-3 py-1 whitespace-nowrap'><span class='inline-flex items-center gap-1'><span class='w-2 h-2 rounded-full' style='background:${SUBJECT_COLORS[subj]||'#64748b'}'></span>${subj}</span></td>
+                  <td class='px-3 py-1'>${m.sessions}</td>
+                  <td class='px-3 py-1 font-medium'>${m.avgCards.toFixed(1)}</td>
+                  <td class='px-3 py-1'>${focus.toFixed(1)}%</td>
+                  <td class='px-3 py-1'>${tA!=null? tA.toFixed(1)+'%':'—'}</td>
+                  <td class='px-3 py-1'><span class='text-[10px] px-2 py-0.5 rounded-full inline-block ${badgeColor}'>${status}</span></td>
+                  <td class='px-3 py-1 text-green-600'>${m.maxCards}</td>
+                  <td class='px-3 py-1 text-red-600'>${m.minCards!=null? m.minCards: '—'}</td>
+                  <td class='px-3 py-1'>${m.lastCards}</td>
+                  <td class='px-3 py-1 whitespace-nowrap'>${m.lastDate? new Date(m.lastDate).toLocaleDateString(): '—'}</td>
+                  <td class='px-3 py-1'>${m.range}</td>
+                </tr>`}).join('') : `<tr><td colspan='11' class='px-3 py-4 text-center text-[var(--text-secondary)]'>No sessions yet.</td></tr>`}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h4 class='text-sm font-medium mb-2 text-[var(--text-primary)]'>Study Focus vs Test Performance</h4>
+          <div class='h-52'><canvas id='fcCorrChart'></canvas></div>
+          <p class='mt-2 text-[var(--text-secondary)] text-xs leading-relaxed'>Bubble chart plots each subject (x: % of cards studied, y: test average %, bubble size = # flashcard sessions). Top-right indicates strong alignment; bottom-left reveals subjects needing more study. Aim to move critical subjects above 80% test average while maintaining balanced study focus.</p>
+        </div>
+      </div>
+      <div>
+        <h4 class='text-sm font-medium mb-2 text-[var(--text-primary)]'>Suggestions</h4>
+        <ul class='list-disc pl-5 space-y-1 text-xs text-[var(--text-secondary)]'>${fcSuggestions.map(s=>`<li>${s}</li>`).join('')}</ul>
+      </div>
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="p-4 bg-white rounded-xl shadow"><div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Total Sets</div><div class="mt-2 text-2xl font-bold text-[var(--text-primary)]">${totalSets}</div></div>
+      <div class="p-4 bg-white rounded-xl shadow"><div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Study Sessions</div><div class="mt-2 text-2xl font-bold text-[var(--text-primary)]">${totalSessions}</div></div>
+      <div class="p-4 bg-white rounded-xl shadow"><div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Cards Studied</div><div class="mt-2 text-2xl font-bold text-[var(--text-primary)]">${totalCardsStudied}</div></div>
+      <div class="p-4 bg-white rounded-xl shadow"><div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Unique Days</div><div class="mt-2 text-2xl font-bold text-[var(--text-primary)]">${uniqueDays}</div></div>
+    </div>
+    <div class="grid gap-6 lg:grid-cols-3">
+      <div class="p-4 bg-white rounded-xl shadow lg:col-span-2">
+        <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">Cards Studied Over Time</h3>
+        <canvas id="fcLine"></canvas>
+      </div>
+      <div class="p-4 bg-white rounded-xl shadow">
+        <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">Sessions by Subject</h3>
+        <canvas id="fcDonut"></canvas>
+      </div>
+    </div>
+    <div class="grid gap-6 lg:grid-cols-3">
+      <div class="p-4 bg-white rounded-xl shadow"><h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">Avg Cards / Session</h3><div class="text-3xl font-bold text-[var(--text-primary)]">${avgSessionCards}</div></div>
+      <div class="p-4 bg-white rounded-xl shadow"><h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">Time Spent (min)</h3><div class="text-3xl font-bold text-[var(--text-primary)]">${Math.round(timeSpent/60)}</div></div>
+      <div class="p-4 bg-white rounded-xl shadow"><h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">Avg Session Time (s)</h3><div class="text-3xl font-bold text-[var(--text-primary)]">${avgSessionTime}</div></div>
+    </div>
+  </div>`;
+  const subjDayMap={}; const allDays=new Set(); sessions.forEach(s=>{ const subj=s.subject||'Other'; const day=dayKeyLocal(s.date); allDays.add(day); if(!subjDayMap[subj]) subjDayMap[subj]={}; subjDayMap[subj][day]=(subjDayMap[subj][day]||0)+(s.cardsSeen||0); }); const lineLabels=[...allDays].sort(); const datasets=Object.keys(subjDayMap).sort().map(subj=>{ const color=SUBJECT_COLORS[subj]||'#555'; return {label:subj,data:lineLabels.map(d=>subjDayMap[subj][d]||0),borderColor:color,backgroundColor:color,tension:.25,fill:false}; });
+  const ctxL=document.getElementById('fcLine'); if(ctxL){ __statsCharts.push(new Chart(ctxL,{type:'line',data:{labels:lineLabels,datasets},options:{responsive:true,interaction:{mode:'nearest',intersect:false},plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}})); }
+  const subjLabels=Object.keys(subjectAgg); const subjSessions=subjLabels.map(s=>subjectAgg[s].sessions||0); const subjColors=subjLabels.map(s=>SUBJECT_COLORS[s]||'#999'); const ctxD=document.getElementById('fcDonut'); if(ctxD){ __statsCharts.push(new Chart(ctxD,{type:'doughnut',data:{labels:subjLabels,datasets:[{data:subjSessions,backgroundColor:subjColors}]},options:{plugins:{legend:{position:'bottom'}}}})); }
+  const corrCtx=document.getElementById('fcCorrChart')?.getContext('2d'); if(corrCtx && correlationPoints.length){ __statsCharts.push(new Chart(corrCtx,{type:'bubble',data:{datasets:[{label:'Subjects', data:correlationPoints.map(p=>({x:p.x,y:p.y,r:p.r, subj:p.subj})), backgroundColor:correlationPoints.map(p=> (SUBJECT_COLORS[p.subj]||'#0d78f2')+'cc'), borderColor:correlationPoints.map(p=> SUBJECT_COLORS[p.subj]||'#0d78f2'), borderWidth:1 }]}, options:{responsive:true,maintainAspectRatio:false, parsing:false, scales:{ x:{ title:{display:true,text:'Study Focus %'}, beginAtZero:true, suggestedMax: Math.max(25, Math.ceil(Math.max(...correlationPoints.map(p=>p.x),10)/10)*10) }, y:{ title:{display:true,text:'Test Avg %'}, suggestedMin:0, suggestedMax:100 } }, plugins:{ tooltip:{ callbacks:{ label: ctx=>{ const d=ctx.raw; return `${d.subj}: Study ${d.x.toFixed(1)}% | Test ${d.y.toFixed(1)}%`; } } }, legend:{display:false} } }})); }
+  document.getElementById('btnSoftResetFlashStats')?.addEventListener('click', ()=>{
+    if(!confirm('Soft reset flashcards? Existing sets / sessions will be hidden on the Flashcards page but remain in global stats. Continue?')) return;
+    try { localStorage.setItem('fpSoftResetFlash','1'); localStorage.setItem('fpSoftResetFlashTs', Date.now().toString()); } catch {}
+    alert('Soft reset applied. Visit the Flashcards page to view a fresh slate.');
+  });
+}
+
+// --- Home (was Trophy content) ---
+function renderHome(){ const primary=document.getElementById('statsContent'); if(!primary) return; destroyStatsCharts(); const attempts=loadAttempts(); const sessions=loadFlashcardSessions(); const tests=loadTests(); const testById=new Map(tests.map(t=>[String(t.id),t]));
+  let highestScore=null; attempts.forEach(a=>{ const pct=a.total? (a.score/a.total)*100:0; if(!highestScore || pct>highestScore.pct) highestScore={pct,testId:a.testId,date:a.date,score:a.score,total:a.total}; });
+  let maxCardsSession=null; sessions.forEach(s=>{ if(!maxCardsSession || (s.cardsSeen||0) > (maxCardsSession.cardsSeen||0)) maxCardsSession=s; });
+  let longestSession=null; sessions.forEach(s=>{ if(!longestSession || (s.durationSeconds||0) > (longestSession.durationSeconds||0)) longestSession=s; });
+  const daysSet=new Set([...attempts.map(a=>dayKeyLocal(a.date)), ...sessions.map(s=>dayKeyLocal(s.date))]);
+  const totalStudyDays=daysSet.size;
+  // Today's Focus data
+  const todayK=dayKeyLocal(new Date());
+  let pomData={}; try{ pomData=JSON.parse(localStorage.getItem('fpPomodoro')||'{}'); }catch{}
+  const todayPom=pomData[todayK]||{sessions:0,focusMin:0};
+  let habits=[]; try{ habits=JSON.parse(localStorage.getItem('fpHabits')||'[]'); }catch{}
+  const habDoneToday=habits.filter(h=>h.log && h.log[todayK]).length;
+  let goals=[]; try{ goals=JSON.parse(localStorage.getItem('fpGoals')||'[]'); }catch{}
+  const activeGoals=goals.filter(g=>!g.completed);
+  const nearestGoal=activeGoals.filter(g=>g.deadline).sort((a,b)=>new Date(a.deadline)-new Date(b.deadline))[0]||null;
+  const nearestDays=nearestGoal? Math.ceil((new Date(nearestGoal.deadline)-new Date())/(1000*60*60*24)):null;
+  let journal=[]; try{ journal=JSON.parse(localStorage.getItem('fpJournal')||'[]'); }catch{}
+  const journalToday=journal.filter(e=>dayKeyLocal(e.created)===todayK).length;
+  function trophyCard(title, value, desc, icon){ return `<div class='bg-white rounded-2xl shadow p-5 flex flex-col gap-3'>
+    <div class='flex items-center gap-3'>${icon}<h3 class='font-semibold text-[var(--text-primary)] text-sm tracking-wide uppercase'>${title}</h3></div>
+    <div class='text-3xl font-bold text-[var(--text-primary)]'>${value}</div>
+    <p class='text-xs text-[var(--text-secondary)] leading-relaxed'>${desc}</p>
+  </div>`; }
+  primary.innerHTML=`<div class='space-y-8'>
+    <!-- Today's Focus -->
+    <div class='rounded-2xl shadow p-6' style='background:var(--white);border:1px solid var(--border-color)'>
+      <h3 class='text-sm font-bold text-[var(--text-primary)] uppercase tracking-wide mb-4 flex items-center gap-2'>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="text-[var(--primary-color)]"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
+        Today's Focus
+      </h3>
+      <div class='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+        <div class='rounded-xl p-4 flex items-center gap-3' style='background:var(--background-color)'>
+          <span class='text-2xl'>🍅</span>
+          <div><div class='text-lg font-bold text-[var(--text-primary)]'>${todayPom.sessions} session${todayPom.sessions===1?'':'s'}</div><div class='text-xs text-[var(--text-secondary)]'>${todayPom.focusMin} min focused</div></div>
+        </div>
+        <div class='rounded-xl p-4 flex items-center gap-3' style='background:var(--background-color)'>
+          <span class='text-2xl'>✅</span>
+          <div><div class='text-lg font-bold text-[var(--text-primary)]'>${habDoneToday}/${habits.length} habits</div><div class='text-xs text-[var(--text-secondary)]'>completed today</div></div>
+        </div>
+        <div class='rounded-xl p-4 flex items-center gap-3' style='background:var(--background-color)'>
+          <span class='text-2xl'>🧠</span>
+          <div><div class='text-lg font-bold text-[var(--text-primary)]'>${journalToday} entr${journalToday===1?'y':'ies'}</div><div class='text-xs text-[var(--text-secondary)]'>journaled today</div></div>
+        </div>
+        <div class='rounded-xl p-4 flex items-center gap-3' style='background:var(--background-color)'>
+          <span class='text-2xl'>🎯</span>
+          <div><div class='text-lg font-bold text-[var(--text-primary)]'>${activeGoals.length} active</div><div class='text-xs text-[var(--text-secondary)]'>${nearestGoal? '"'+nearestGoal.title+'" in '+nearestDays+'d':'No deadlines set'}</div></div>
+        </div>
+      </div>
+    </div>
+    <!-- Trophy cards -->
+    <div class='grid gap-6 sm:grid-cols-2 lg:grid-cols-3'>
+      ${trophyCard('Highest Test Score', highestScore? highestScore.pct.toFixed(1)+'%':'—', highestScore?`On ${(testById.get(String(highestScore.testId))||{}).name||'a test'} (${highestScore.score}/${highestScore.total})`:'Take a test to unlock this!', '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="text-amber-500"><path d="M5 3h14v3h2a1 1 0 0 1 1 1c0 4.418-2.239 8-5 8-1.357 0-2.59-.71-3.5-1.874A4.494 4.494 0 0 1 9 15C6.239 15 4 11.418 4 7a1 1 0 0 1 1-1h0V3Zm2 2v1c0 3.309 1.567 6 3 6 .42 0 1.362-.675 2-1.657V5H7Zm6 0v5.343C13.638 11.325 14.58 12 15 12c1.433 0 3-2.691 3-6V5h-5ZM8 17h8v2a4 4 0 0 1-4 4 4 4 0 0 1-4-4v-2Z"/></svg>')}
+      ${trophyCard('Most Cards in Session', maxCardsSession? maxCardsSession.cardsSeen:'—', maxCardsSession?`In set: ${maxCardsSession.setName||'Unknown'} (${maxCardsSession.cardsSeen}/${maxCardsSession.totalCards} seen)`:'Study flashcards to unlock.', '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="text-emerald-500"><path d="M4 4h16v12H4zM4 20h16v-2H4z"/></svg>')}
+      ${trophyCard('Longest Flashcard Session', longestSession? fmtSecondsToHMS(longestSession.durationSeconds):'—', longestSession?`Duration with ${(longestSession.cardsSeen||0)} cards studied.`:'Finish a session to unlock.', '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="text-sky-500"><path d="M12 8a4 4 0 1  1 1 0 0 1 0 8 4 4 0 0 1 0-8Zm0-6a1 1 0 0 1 1 1v2.07A8.001 8.001 0 0 1 12 22a8.001 8.001 0 0 1-1-15.93V3a1 1 0 0 1 1-1Z"/></svg>')}
+      ${trophyCard('Study Days', totalStudyDays, 'Unique calendar days you engaged with tests or flashcards.', '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="text-indigo-500"><path d="M6 2a1 1 0 0 0-1 1v1H4a2 2 0 0 0-2 2v2h20V6a2 2 0 0 0-2-2h-1V3a1 1 0 1 0-2 0v1H7V3a1 1 0 0 0-1-1ZM22 10H2v8a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8ZM8 13h3v3H8v-3Z"/></svg>')}
+      ${trophyCard('Total Tests Taken', attempts.length, 'All recorded test attempts. Keep practicing!', '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="text-pink-500"><path d="M5 9h3v10H5zM10.5 4h3v15h-3zM16 13h3v6h-3z"/></svg>')}
+      ${trophyCard('Flashcard Sessions', sessions.length, 'Completed flashcard study sessions logged.', '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" class="text-teal-500"><path d="M4 4h16v12H4zM4 20h16v-2H4z"/></svg>')}
+    </div>
+    <div class='text-xs text-[var(--text-secondary)]'>Badges & streak tracking coming soon.</div>
+  </div>`; }
+
+// Trophy Room with 50 unlockable badges
+function renderTrophies(){ const primary=document.getElementById('statsContent'); if(!primary) return; destroyStatsCharts();
+  const tests=loadTests(); const attempts=loadAttempts(); const sets=loadCardSets(); const sessions=loadFlashcardSessions();
+  const totalTests=tests.length; const totalQuestions=tests.reduce((s,t)=> s+(t.questions?.length||0),0); const totalAttempts=attempts.length; const totalSets=sets.length; const totalCards=sets.reduce((s,st)=> s+(st.cards?.length||0),0); const totalSessions=sessions.length; const totalCardsStudied=sessions.reduce((s,a)=> s+(a.cardsSeen||0),0); const totalStudySeconds=sessions.reduce((s,a)=> s+(a.durationSeconds||0),0);
+  const longestSession=sessions.reduce((m,s)=> (s.durationSeconds||0)>(m?.durationSeconds||0)?s:m,null); const maxCardsSession=sessions.reduce((m,s)=> (s.cardsSeen||0)>(m?.cardsSeen||0)?s:m,null);
+  const highestScoreAttempt = attempts.reduce((m,a)=>{ const pct=a.total? (a.score/a.total)*100:0; return (!m||pct>m.pct)? {pct,attempt:a}:m; }, null);
+  const perfectScores = attempts.filter(a=> a.total && (a.score/a.total)*100===100).length; const avgScore = attempts.length? attempts.reduce((s,a)=> s+(a.total? (a.score/a.total)*100:0),0)/attempts.length:0;
+  const testBySubject={}; attempts.forEach(a=>{ const t=tests.find(tt=> String(tt.id)===String(a.testId)); const subj=(t&&t.subject)||'(No Subject)'; const pct=a.total? (a.score/a.total)*100:0; if(!testBySubject[subj]) testBySubject[subj]={sum:0,count:0,max:0}; testBySubject[subj].sum+=pct; testBySubject[subj].count++; if(pct>testBySubject[subj].max) testBySubject[subj].max=pct; }); Object.keys(testBySubject).forEach(s=> testBySubject[s].avg = testBySubject[s].count? testBySubject[s].sum/testBySubject[s].count:0 );
+  const flashBySubject={}; sessions.forEach(s=>{ const subj=s.subject||'Other'; if(!flashBySubject[subj]) flashBySubject[subj]={sessions:0,cards:0}; flashBySubject[subj].sessions++; flashBySubject[subj].cards += (s.cardsSeen||0); });
+  const distinctFlashSubjects=Object.keys(flashBySubject).length;
+  const sortedAttempts=[...attempts].sort((a,b)=> new Date(a.date)-new Date(b.date)); const last5=sortedAttempts.slice(-5); const prev5=sortedAttempts.slice(-10,-5); const avgPct=list=> list.length? list.reduce((s,a)=> s+(a.total? (a.score/a.total)*100:0),0)/list.length:0; const trendDelta=(last5.length&&prev5.length)? (avgPct(last5)-avgPct(prev5)):0;
+  const daySet=new Set([...attempts.map(a=>dayKeyLocal(a.date)), ...sessions.map(s=>dayKeyLocal(s.date))]); const allDays=[...daySet].sort(); let longestStreak=0,currentStreak=0,prevDate=null; allDays.forEach(d=>{ const dt=new Date(d); if(prevDate){ const nx=new Date(prevDate); nx.setDate(nx.getDate()+1); const isConsecutive=dayKeyLocal(nx)===dayKeyLocal(dt); currentStreak=isConsecutive? currentStreak+1:1; } else currentStreak=1; if(currentStreak>longestStreak) longestStreak=currentStreak; prevDate=dt; });
+  const totalSubjectCards=Object.values(flashBySubject).reduce((s,o)=> s+o.cards,0); let balancedStudy=false; if(totalSubjectCards>0){ const shares=Object.values(flashBySubject).map(o=> o.cards/totalSubjectCards); const avgShare=shares.reduce((a,b)=>a+b,0)/shares.length; balancedStudy=shares.every(sh=> sh>=avgShare*0.4); }
+  function hours(h){ return h*3600; } function minutes(m){ return m*60; }
+  // Load tools data for badges
+  let _pomData={}; try{ _pomData=JSON.parse(localStorage.getItem('fpPomodoro')||'{}'); }catch{}
+  const _pomDays=Object.keys(_pomData); const totalPomSessions=_pomDays.reduce((s,d)=>(_pomData[d]?.sessions||0)+s,0); const totalFocusMin=_pomDays.reduce((s,d)=>(_pomData[d]?.focusMin||0)+s,0);
+  let pomStreak=0; {const _todayK=dayKeyLocal(new Date()); const sorted=_pomDays.filter(d=>(_pomData[d]?.sessions||0)>0).sort().reverse(); let expect=_todayK;
+    for(let i=0;i<sorted.length;i++){ if(sorted[i]===expect){ pomStreak++; const prev=new Date(expect); prev.setDate(prev.getDate()-1); expect=dayKeyLocal(prev); } else if(i===0){ const yest=new Date(); yest.setDate(yest.getDate()-1); expect=dayKeyLocal(yest); if(sorted[i]===expect){ pomStreak++; const prev=new Date(expect); prev.setDate(prev.getDate()-1); expect=dayKeyLocal(prev); } else break; } else break; }}
+  let _habits=[]; try{ _habits=JSON.parse(localStorage.getItem('fpHabits')||'[]'); }catch{}
+  const totalHabits=_habits.length;
+  function _habitStreak(h){ let streak=0; const d=new Date(); d.setHours(0,0,0,0); for(let i=0;i<365;i++){ const k=dayKeyLocal(d); if(h.log && h.log[k]) streak++; else if(i===0){} else break; d.setDate(d.getDate()-1); } return streak; }
+  const bestHabitStreak=_habits.reduce((m,h)=>Math.max(m,_habitStreak(h)),0);
+  let habitTotalChecks=0,habitTotalPossible=0;
+  for(let i=0;i<30;i++){ const d=new Date(); d.setDate(d.getDate()-i); const k=dayKeyLocal(d); const dow=d.getDay();
+    _habits.forEach(h=>{ const applicable=h.freq==='daily'||(h.freq==='weekdays'&&dow>=1&&dow<=5)||(h.freq==='weekends'&&(dow===0||dow===6)); if(!applicable) return; habitTotalPossible++; if(h.log&&h.log[k]) habitTotalChecks++; }); }
+  const habitCompRate=habitTotalPossible? Math.round((habitTotalChecks/habitTotalPossible)*100):0;
+  let _journal=[]; try{ _journal=JSON.parse(localStorage.getItem('fpJournal')||'[]'); }catch{}
+  const totalJournalEntries=_journal.length; const totalJournalWords=_journal.reduce((s,e)=>(e.body?e.body.split(/\s+/).filter(Boolean).length:0)+s,0);
+  let journalStreak=0; {const _todayK2=dayKeyLocal(new Date()); const jDays=[...new Set(_journal.map(e=>dayKeyLocal(e.created)))].sort().reverse(); let expect2=_todayK2;
+    for(let i=0;i<jDays.length;i++){ if(jDays[i]===expect2){ journalStreak++; const prev=new Date(expect2); prev.setDate(prev.getDate()-1); expect2=dayKeyLocal(prev); } else if(i===0){ const yest=new Date(); yest.setDate(yest.getDate()-1); expect2=dayKeyLocal(yest); if(jDays[i]===expect2){ journalStreak++; const prev=new Date(expect2); prev.setDate(prev.getDate()-1); expect2=dayKeyLocal(prev); } else break; } else break; }}
+  let _goals=[]; try{ _goals=JSON.parse(localStorage.getItem('fpGoals')||'[]'); }catch{}
+  const totalGoals=_goals.length; const completedGoals=_goals.filter(g=>g.completed).length;
+  const doneMilestones=_goals.reduce((s,g)=>(g.milestones?.filter(m=>m.done).length||0)+s,0);
+  const ctx={tests,attempts,sets,sessions,totalTests,totalQuestions,totalAttempts,totalSets,totalCards,totalSessions,totalCardsStudied,totalStudySeconds,longestSession,maxCardsSession,highestScoreAttempt,perfectScores,avgScore,testBySubject,flashBySubject,distinctFlashSubjects,trendDelta,longestStreak,balancedStudy,totalPomSessions,totalFocusMin,pomStreak,totalHabits,bestHabitStreak,habitCompRate,totalJournalEntries,totalJournalWords,journalStreak,totalGoals,completedGoals,doneMilestones};
+  const badges=[
+    {id:'test_first',name:'Test Pilot',icon:'✈️',check:c=>c.totalTests>=1,desc:'Create your first test.'},
+    {id:'test_5',name:'Assessment Architect',icon:'🏗️',check:c=>c.totalTests>=5,desc:'Create 5 tests.'},
+    {id:'test_10',name:'Exam Engineer',icon:'🧪',check:c=>c.totalTests>=10,desc:'Create 10 tests.'},
+    {id:'test_25',name:'Quiz Quartermaster',icon:'📦',check:c=>c.totalTests>=25,desc:'Create 25 tests.'},
+    {id:'test_50',name:'Vault Curator',icon:'🏛️',check:c=>c.totalTests>=50,desc:'Create 50 tests.'},
+    {id:'q_10',name:'Inkling',icon:'🖊️',check:c=>c.totalQuestions>=10,desc:'Write 10 questions.'},
+    {id:'q_50',name:'Question Crafter',icon:'✍️',check:c=>c.totalQuestions>=50,desc:'Write 50 questions.'},
+    {id:'q_100',name:'Item Author',icon:'📜',check:c=>c.totalQuestions>=100,desc:'Write 100 questions.'},
+    {id:'q_250',name:'Socratic Sage',icon:'🦉',check:c=>c.totalQuestions>=250,desc:'Write 250 questions.'},
+    {id:'q_500',name:'Grand Examiner',icon:'👑',check:c=>c.totalQuestions>=500,desc:'Write 500 questions.'},
+    {id:'attempt_first',name:'First Flight',icon:'🚀',check:c=>c.totalAttempts>=1,desc:'Complete your first test attempt.'},
+    {id:'attempt_5',name:'Test Tactician',icon:'🛡️',check:c=>c.totalAttempts>=5,desc:'Finish 5 test attempts.'},
+    {id:'attempt_10',name:'Assessment Adept',icon:'🎯',check:c=>c.totalAttempts>=10,desc:'Finish 10 test attempts.'},
+    {id:'attempt_25',name:'Practice Pro',icon:'🏅',check:c=>c.totalAttempts>=25,desc:'Finish 25 test attempts.'},
+    {id:'attempt_50',name:'Endurance Scholar',icon:'🥇',check:c=>c.totalAttempts>=50,desc:'Finish 50 test attempts.'},
+    {id:'score_80',name:'Solid Scholar',icon:'📈',check:c=>c.highestScoreAttempt && c.highestScoreAttempt.pct>=80,desc:'Score at least 80% once.'},
+    {id:'score_90',name:'High Achiever',icon:'🚩',check:c=>c.highestScoreAttempt && c.highestScoreAttempt.pct>=90,desc:'Score at least 90% once.'},
+    {id:'score_100_once',name:'Perfect Shot',icon:'🎯',check:c=>c.perfectScores>=1,desc:'Earn a perfect 100% score.'},
+    {id:'score_100_five',name:'Precision Machine',icon:'⚙️',check:c=>c.perfectScores>=5,desc:'Earn 5 perfect scores.'},
+    {id:'avg_85',name:'Consistent Brilliance',icon:'💎',check:c=>c.avgScore>=85 && c.totalAttempts>=5,desc:'Maintain 85% avg after 5 attempts.'},
+    {id:'trend_up',name:'Upward Momentum',icon:'📊',check:c=>c.trendDelta>=5,desc:'Improve last 5 vs previous 5 by 5+.'},
+    {id:'set_first',name:'Starter Pack',icon:'📦',check:c=>c.totalSets>=1,desc:'Create first flashcard set.'},
+    {id:'set_5',name:'Deck Dealer',icon:'🃏',check:c=>c.totalSets>=5,desc:'Create 5 flashcard sets.'},
+    {id:'set_10',name:'Card Curator',icon:'🗂️',check:c=>c.totalSets>=10,desc:'Create 10 flashcard sets.'},
+    {id:'set_25',name:'Library Builder',icon:'📚',check:c=>c.totalSets>=25,desc:'Create 25 flashcard sets.'},
+    {id:'set_50',name:'Archive Architect',icon:'🏯',check:c=>c.totalSets>=50,desc:'Create 50 flashcard sets.'},
+    {id:'card_20',name:'First Stack',icon:'🪜',check:c=>c.totalCards>=20,desc:'Author 20 cards.'},
+    {id:'card_100',name:'Century Deck',icon:'💯',check:c=>c.totalCards>=100,desc:'Author 100 cards.'},
+    {id:'card_250',name:'Lexicon Smith',icon:'🧰',check:c=>c.totalCards>=250,desc:'Author 250 cards.'},
+    {id:'card_500',name:'Memory Mason',icon:'🧱',check:c=>c.totalCards>=500,desc:'Author 500 cards.'},
+    {id:'card_1000',name:'Mnemonic Master',icon:'🧠',check:c=>c.totalCards>=1000,desc:'Author 1000 cards.'},
+    {id:'session_first',name:'Study Spark',icon:'🔥',check:c=>c.totalSessions>=1,desc:'Complete first session.'},
+    {id:'session_10',name:'Routine Builder',icon:'🔁',check:c=>c.totalSessions>=10,desc:'Complete 10 sessions.'},
+    {id:'session_25',name:'Habit Former',icon:'🪴',check:c=>c.totalSessions>=25,desc:'Complete 25 sessions.'},
+    {id:'session_50',name:'Drill Specialist',icon:'🛠️',check:c=>c.totalSessions>=50,desc:'Complete 50 sessions.'},
+    {id:'session_100',name:'Session Centurion',icon:'🛡️',check:c=>c.totalSessions>=100,desc:'Complete 100 sessions.'},
+    {id:'study_10min',name:'Warmed Up',icon:'♨️',check:c=>c.totalStudySeconds>=minutes(10),desc:'10 minutes total study.'},
+    {id:'study_1h',name:'One Hour Scholar',icon:'⏰',check:c=>c.totalStudySeconds>=hours(1),desc:'1 hour total study.'},
+    {id:'study_5h',name:'Marathon Mind',icon:'🏃',check:c=>c.totalStudySeconds>=hours(5),desc:'5 hours total study.'},
+    {id:'study_10h',name:'Endurance Mind',icon:'🗻',check:c=>c.totalStudySeconds>=hours(10),desc:'10 hours total study.'},
+    {id:'cardsStudied_500',name:'Card Voyager',icon:'🧭',check:c=>c.totalCardsStudied>=500,desc:'Study 500 cards total.'},
+    {id:'cardsStudied_2000',name:'Recall Ranger',icon:'🏹',check:c=>c.totalCardsStudied>=2000,desc:'Study 2000 cards.'},
+    {id:'cardsStudied_5000',name:'Retention Titan',icon:'🗿',check:c=>c.totalCardsStudied>=5000,desc:'Study 5000 cards.'},
+    {id:'diversifier',name:'Subject Sampler',icon:'🍱',check:c=> c.distinctFlashSubjects>=5,desc:'Study 5 subjects.'},
+    {id:'focus_balance',name:'Balanced Scholar',icon:'⚖️',check:c=> c.balancedStudy && c.distinctFlashSubjects>=3,desc:'Balanced focus across subjects.'},
+    {id:'flash_marathon',name:'Flashcard Marathon',icon:'🏁',check:c=> (c.maxCardsSession?.cardsSeen||0)>=100,desc:'100 cards single session.'},
+    {id:'streak_3',name:'Spark Streak',icon:'📆',check:c=> c.longestStreak>=3,desc:'3-day study streak.'},
+  {id:'streak_7',name:'Weekly Warrior',icon:'🗓️',check:c=> c.longestStreak>=7,desc:'7-day study streak.'},
+  // Tools badges
+  {id:'pom_first',name:'First Tomato',icon:'🍅',check:c=> c.totalPomSessions>=1,desc:'Complete your first Pomodoro session.'},
+  {id:'pom_25',name:'Pomodoro Pro',icon:'🍅',check:c=> c.totalPomSessions>=25,desc:'Complete 25 Pomodoro sessions.'},
+  {id:'pom_100',name:'Focus Machine',icon:'⚡',check:c=> c.totalPomSessions>=100,desc:'Complete 100 Pomodoro sessions.'},
+  {id:'pom_streak_7',name:'Focus Week',icon:'🔥',check:c=> c.pomStreak>=7,desc:'7-day Pomodoro streak.'},
+  {id:'pom_hours_10',name:'Deep Worker',icon:'🧘',check:c=> c.totalFocusMin>=600,desc:'Accumulate 10 hours of focus time.'},
+  {id:'habit_first',name:'Habit Starter',icon:'✅',check:c=> c.totalHabits>=1,desc:'Create your first habit.'},
+  {id:'habit_streak_7',name:'Habit Machine',icon:'🪴',check:c=> c.bestHabitStreak>=7,desc:'7-day streak on any habit.'},
+  {id:'habit_streak_30',name:'Unbreakable',icon:'💪',check:c=> c.bestHabitStreak>=30,desc:'30-day streak on any habit.'},
+  {id:'habit_rate_80',name:'Consistent',icon:'📊',check:c=> c.habitCompRate>=80 && c.totalHabits>=2,desc:'80%+ habit completion over 30 days.'},
+  {id:'journal_first',name:'Dear Diary',icon:'📓',check:c=> c.totalJournalEntries>=1,desc:'Write your first journal entry.'},
+  {id:'journal_10',name:'Reflective Mind',icon:'🧠',check:c=> c.totalJournalEntries>=10,desc:'Write 10 journal entries.'},
+  {id:'journal_streak_7',name:'Journaling Habit',icon:'✍️',check:c=> c.journalStreak>=7,desc:'7-day journal streak.'},
+  {id:'journal_words_5k',name:'Wordsmith',icon:'📝',check:c=> c.totalJournalWords>=5000,desc:'Write 5,000 words in your journal.'},
+  {id:'goal_first',name:'Aim High',icon:'🎯',check:c=> c.totalGoals>=1,desc:'Create your first goal.'},
+  {id:'goal_complete_1',name:'Mission Complete',icon:'🏆',check:c=> c.completedGoals>=1,desc:'Complete your first goal.'},
+  {id:'goal_complete_5',name:'Goal Crusher',icon:'💎',check:c=> c.completedGoals>=5,desc:'Complete 5 goals.'},
+  {id:'milestone_50',name:'Milestone Master',icon:'🪨',check:c=> c.doneMilestones>=50,desc:'Complete 50 milestones across all goals.'},
+  {id:'study_grand_master',name:'Study Grand Master',icon:'<svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M50 8 L54 38 L50 92 L46 38 Z" fill="#22d3ee" opacity="0.9"/><path d="M50 8 L52 38 L50 92 L48 38 Z" fill="#fff" opacity="0.7"/><ellipse cx="50" cy="38" rx="10" ry="4" fill="#64748b"/><rect x="44" y="36" width="12" height="6" rx="1" fill="#94a3b8"/><circle cx="50" cy="8" r="3" fill="#22d3ee" opacity="0.8"/><circle cx="50" cy="6" r="5" fill="none" stroke="#22d3ee" stroke-width="1" opacity="0.3"/></svg>',secret:true,check:()=>false,desc:'Study much, you did. Learned everything, you have. A Master, you have become.'},
+  ];
+  // Separate secret logic: count only non-secret for progress
+  const visibleBadges = badges.filter(b=> !b.secret);
+  // Previously earned (persisted) list from resets
+  let persistedBadges=[]; try{ persistedBadges=JSON.parse(localStorage.getItem('fpPersistedBadges')||'[]'); }catch{}
+  const allNonSecretEarnedWithPersisted = visibleBadges.every(b=> b.check(ctx) || persistedBadges.includes(b.id));
+  const DEV = (window.FPDev && window.FPDev.isDev && window.FPDev.isDev());
+  const secretPersisted = persistedBadges.includes('study_grand_master');
+  const grandMasterUnlocked = allNonSecretEarnedWithPersisted || secretPersisted;
+  // In Developer Mode, display all achievements as unlocked for debugging
+  const earnedCountVisible = DEV ? visibleBadges.length : visibleBadges.filter(b=> b.check(ctx) || persistedBadges.includes(b.id)).length;
+  const earnedCount = DEV ? badges.length : badges.filter(b=> (b.check(ctx) || persistedBadges.includes(b.id))).length;
+  primary.innerHTML=`<div class='space-y-6'>
+    <div class='flex items-center justify-between flex-wrap gap-4'>
+      <h3 class='text-xl font-semibold text-[var(--text-primary)]'>Trophy Room</h3>
+      <div class='text-xs text-[var(--text-secondary)]'>${earnedCountVisible}/${visibleBadges.length} core achievements | ${earnedCount}/${badges.length} total</div>
+    </div>
+    <div id='badgeGrid' class='grid gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8'></div>
+    <div id='badgeDetail' class='hidden p-4 bg-white rounded-xl shadow text-sm leading-relaxed'></div>
+  </div>`;
+  const grid=document.getElementById('badgeGrid');
+  // If grand master just unlocked, persist it
+  if(grandMasterUnlocked && !persistedBadges.includes('study_grand_master')){ persistedBadges.push('study_grand_master'); localStorage.setItem('fpPersistedBadges', JSON.stringify(persistedBadges)); }
+  badges.forEach(b=>{
+    // Earned if criteria met OR persisted; secret badge uses grandMasterUnlocked; Dev Mode shows all
+    const earned = DEV ? true : (b.secret ? grandMasterUnlocked : (b.check(ctx) || persistedBadges.includes(b.id)));
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.dataset.id=b.id;
+    btn.className=`group relative flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition ${earned? 'bg-white border-[var(--primary-color)] shadow':'bg-white border-[var(--border-color)] opacity-70'} hover:opacity-100`;
+    const iconHTML = b.secret ? (earned ? b.icon : '<div class="text-2xl">❓</div>') : `<div class='text-2xl'>${b.icon}</div>`;
+    const nameHTML = b.secret && !earned ? '???' : b.name;
+    btn.innerHTML=`<div>${iconHTML}</div><div class='text-[11px] font-semibold tracking-wide ${earned? 'text-[var(--primary-color)]':'text-[var(--text-secondary)]'}'>${nameHTML}</div><div class='absolute top-2 right-2 text-[10px] ${earned? 'text-emerald-500':'text-gray-300'}'>${earned?'✔':''}</div>`;
+    btn.addEventListener('click',()=>{ const detail=document.getElementById('badgeDetail'); const earnedNow = DEV ? true : (b.secret ? grandMasterUnlocked : (b.check(ctx) || persistedBadges.includes(b.id))); detail.innerHTML=badgeDetailHTML(b,ctx,earnedNow); detail.classList.remove('hidden'); detail.scrollIntoView({behavior:'smooth',block:'nearest'}); });
+    grid.appendChild(btn);
+  });
+  function badgeDetailHTML(b,c,earned){ const progress = progressText(b,c,earned); const detailIcon = b.secret && !earned ? '❓' : b.icon; const detailName = b.secret && !earned ? '???' : b.name; return `<div class='flex items-start gap-4'><div class='text-4xl'>${detailIcon}</div><div class='flex-1'><div class='font-semibold text-[var(--text-primary)] text-sm mb-1'>${detailName} ${earned? '<span class="ml-2 text-emerald-600 text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200">UNLOCKED</span>':''}</div><div class='text-[var(--text-secondary)] text-xs leading-relaxed'>${progress}</div></div></div>`; }
+  function progressText(b,c,earned){ if(b.secret){ return earned? 'Study much, you did. Learned everything, you have. A Master, you have become.' : 'Unlock all other achievements to reveal this secret, you must.'; } switch(b.id){
+      case 'q_50': return earned? '50 questions authored.' : `Progress: ${c.totalQuestions}/50 questions.`;
+      case 'q_100': return earned? '100 questions authored.' : `Progress: ${c.totalQuestions}/100 questions.`;
+      case 'test_10': return earned? '10 tests created.' : `Progress: ${c.totalTests}/10 tests.`;
+      case 'avg_85': return earned? `Average ${(c.avgScore).toFixed(1)}%.` : `Current average ${(c.avgScore).toFixed(1)}% / 85%.`;
+      case 'trend_up': return earned? `Improved by ${c.trendDelta.toFixed(1)} pts.` : `Improvement ${c.trendDelta.toFixed(1)} / 5 pts.`;
+      case 'study_5h': return earned? `${(c.totalStudySeconds/3600).toFixed(1)}h studied.` : `Study time ${(c.totalStudySeconds/3600).toFixed(2)}h / 5h.`;
+      case 'cardsStudied_2000': return earned? `${c.totalCardsStudied} cards studied.` : `Cards studied ${c.totalCardsStudied}/2000.`;
+      case 'flash_marathon': return earned? `Best session ${c.maxCardsSession.cardsSeen} cards.` : `Best ${(c.maxCardsSession?.cardsSeen||0)}/100 cards.`;
+      case 'streak_7': return earned? `Longest streak ${c.longestStreak} days.` : `Longest streak ${c.longestStreak}/7 days.`;
+      default: return earned? b.desc : b.desc; }
+  }
+}
+
+// --- Tools Stats (Pomodoro, Habits, Journal, Goals) ---
+function renderToolStats(){ const primary=document.getElementById('statsContent'); if(!primary) return; destroyStatsCharts();
+  // Load tool data
+  let pomData={}; try{ pomData=JSON.parse(localStorage.getItem('fpPomodoro')||'{}'); }catch{}
+  let habits=[]; try{ habits=JSON.parse(localStorage.getItem('fpHabits')||'[]'); }catch{}
+  let journal=[]; try{ journal=JSON.parse(localStorage.getItem('fpJournal')||'[]'); }catch{}
+  let goals=[]; try{ goals=JSON.parse(localStorage.getItem('fpGoals')||'[]'); }catch{}
+
+  // --- Pomodoro stats ---
+  const pomDays=Object.keys(pomData).sort();
+  const totalPomSessions=pomDays.reduce((s,d)=>(pomData[d]?.sessions||0)+s,0);
+  const totalFocusMin=pomDays.reduce((s,d)=>(pomData[d]?.focusMin||0)+s,0);
+  const pomActiveDays=pomDays.filter(d=>(pomData[d]?.sessions||0)>0).length;
+  // Pomodoro streak (consecutive days with sessions, ending today or yesterday)
+  let pomStreak=0; const todayKey=dayKeyLocal(new Date());
+  {const sorted=pomDays.filter(d=>(pomData[d]?.sessions||0)>0).sort().reverse(); let expect=todayKey;
+    for(let i=0;i<sorted.length;i++){ if(sorted[i]===expect){ pomStreak++; const prev=new Date(expect); prev.setDate(prev.getDate()-1); expect=dayKeyLocal(prev); } else if(i===0){ const yest=new Date(); yest.setDate(yest.getDate()-1); expect=dayKeyLocal(yest); if(sorted[i]===expect){ pomStreak++; const prev=new Date(expect); prev.setDate(prev.getDate()-1); expect=dayKeyLocal(prev); } else break; } else break; }}
+  // Last 14 days data for chart
+  const base14=new Date(); base14.setHours(0,0,0,0);
+  const pom14=Array.from({length:14}).map((_,i)=>{ const d=new Date(base14); d.setDate(d.getDate()-(13-i)); return dayKeyLocal(d); });
+  const pomChartSessions=pom14.map(d=>(pomData[d]?.sessions||0));
+  const pomChartMinutes=pom14.map(d=>(pomData[d]?.focusMin||0));
+
+  // --- Habit stats ---
+  const today=dayKeyLocal(new Date());
+  const totalHabits=habits.length;
+  const habitsCompletedToday=habits.filter(h=>h.log && h.log[today]).length;
+  // Per-habit streak
+  function habitStreak(h){ let streak=0; const d=new Date(); d.setHours(0,0,0,0); for(let i=0;i<365;i++){ const k=dayKeyLocal(d); if(h.log && h.log[k]) streak++; else if(i===0){ /* allow today not yet done */ } else break; d.setDate(d.getDate()-1); } return streak; }
+  const habitStreaks=habits.map(h=>({name:h.name, icon:h.icon||'✅', streak:habitStreak(h), color:h.color||'#3b82f6'}));
+  const bestHabitStreak=habitStreaks.reduce((m,h)=>h.streak>m?h.streak:m,0);
+  // Overall daily completion rate (last 30 days)
+  let habitTotalChecks=0, habitTotalPossible=0;
+  for(let i=0;i<30;i++){ const d=new Date(); d.setDate(d.getDate()-i); const k=dayKeyLocal(d); const dow=d.getDay();
+    habits.forEach(h=>{ const applicable = h.freq==='daily' || (h.freq==='weekdays' && dow>=1 && dow<=5) || (h.freq==='weekends' && (dow===0||dow===6));
+      if(!applicable) return; habitTotalPossible++; if(h.log && h.log[k]) habitTotalChecks++; }); }
+  const habitCompRate=habitTotalPossible? Math.round((habitTotalChecks/habitTotalPossible)*100):0;
+  // Habit completion over last 14 days for chart
+  const hab14=pom14.map(dk=>{ const d=new Date(dk); const dow=d.getDay(); let done=0,total=0;
+    habits.forEach(h=>{ const applicable = h.freq==='daily' || (h.freq==='weekdays' && dow>=1 && dow<=5) || (h.freq==='weekends' && (dow===0||dow===6));
+      if(!applicable) return; total++; if(h.log && h.log[dk]) done++; }); return total? Math.round((done/total)*100):null; });
+
+  // --- Journal stats ---
+  const totalEntries=journal.length;
+  const totalWords=journal.reduce((s,e)=>(e.body?e.body.split(/\s+/).filter(Boolean).length:0)+s,0);
+  const journalDays=new Set(journal.map(e=>dayKeyLocal(e.created))).size;
+  // Journal streak
+  let journalStreak=0;
+  {const jDays=[...new Set(journal.map(e=>dayKeyLocal(e.created)))].sort().reverse(); let expect2=todayKey;
+    for(let i=0;i<jDays.length;i++){ if(jDays[i]===expect2){ journalStreak++; const prev=new Date(expect2); prev.setDate(prev.getDate()-1); expect2=dayKeyLocal(prev); } else if(i===0){ const yest=new Date(); yest.setDate(yest.getDate()-1); expect2=dayKeyLocal(yest); if(jDays[i]===expect2){ journalStreak++; const prev=new Date(expect2); prev.setDate(prev.getDate()-1); expect2=dayKeyLocal(prev); } else break; } else break; }}
+  // Entries over last 14 days
+  const jour14=pom14.map(dk=>journal.filter(e=>dayKeyLocal(e.created)===dk).length);
+
+  // --- Goal stats ---
+  const totalGoals=goals.length;
+  const completedGoals=goals.filter(g=>g.completed).length;
+  const activeGoals=totalGoals-completedGoals;
+  const totalMilestones=goals.reduce((s,g)=>(g.milestones?.length||0)+s,0);
+  const doneMilestones=goals.reduce((s,g)=>(g.milestones?.filter(m=>m.done).length||0)+s,0);
+  const milestoneRate=totalMilestones? Math.round((doneMilestones/totalMilestones)*100):0;
+  // Nearest deadline
+  const upcoming=goals.filter(g=>!g.completed && g.deadline).sort((a,b)=>new Date(a.deadline)-new Date(b.deadline));
+  const nearestGoal=upcoming[0]||null;
+  const nearestDays=nearestGoal? Math.ceil((new Date(nearestGoal.deadline)-new Date())/(1000*60*60*24)):null;
+  // Goal completion by category
+  const goalCats={}; goals.forEach(g=>{ const c=g.category||'personal'; if(!goalCats[c]) goalCats[c]={total:0,done:0}; goalCats[c].total++; if(g.completed) goalCats[c].done++; });
+
+  // --- Suggestions ---
+  const suggestions=[];
+  if(totalPomSessions===0 && totalEntries===0 && totalHabits===0 && totalGoals===0) suggestions.push('Start using the study tools! Try setting a Pomodoro timer or creating a habit to track.');
+  if(pomStreak>=3) suggestions.push(`Great Pomodoro streak of ${pomStreak} days! Keep the momentum going.`);
+  if(pomStreak===0 && totalPomSessions>0) suggestions.push('Your Pomodoro streak has ended. Jump back in today to start a new one!');
+  if(habitCompRate>0 && habitCompRate<60) suggestions.push(`Habit completion rate is ${habitCompRate}%. Try focusing on fewer habits to build consistency.`);
+  if(habitCompRate>=80) suggestions.push(`Excellent habit consistency at ${habitCompRate}%! Consider adding a new habit.`);
+  if(journalStreak===0 && totalEntries>0) suggestions.push('Resume journaling to rebuild your streak. Even a short entry counts.');
+  if(activeGoals>0 && nearestGoal) suggestions.push(`Nearest deadline: "${nearestGoal.title}" in ${nearestDays} day${nearestDays===1?'':'s'}. Check your milestones!`);
+  if(completedGoals>0 && activeGoals===0) suggestions.push('All goals completed! Set new goals to keep pushing forward.');
+  if(!suggestions.length) suggestions.push('Keep using the study tools consistently. Small daily efforts compound into big results.');
+
+  // --- Render ---
+  const catColors={study:'#3b82f6',fitness:'#22c55e',career:'#f59e0b',personal:'#a855f7'};
+  const catLabels=Object.keys(goalCats); const catData=catLabels.map(c=>goalCats[c].total); const catDoneData=catLabels.map(c=>goalCats[c].done); const catClrs=catLabels.map(c=>catColors[c]||'#64748b');
+
+  primary.innerHTML=`<div class='space-y-8'>
+    <!-- Counters row -->
+    <div class='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+      <div class='p-4 bg-white rounded-xl shadow'><div class='text-xs text-[var(--text-secondary)] uppercase font-semibold'>🍅 Pomodoro Sessions</div><div class='mt-2 text-2xl font-bold text-[var(--text-primary)]'>${totalPomSessions}</div><div class='text-xs text-[var(--text-secondary)] mt-1'>${totalFocusMin} min focus &bull; ${pomStreak}-day streak</div></div>
+      <div class='p-4 bg-white rounded-xl shadow'><div class='text-xs text-[var(--text-secondary)] uppercase font-semibold'>✅ Habits</div><div class='mt-2 text-2xl font-bold text-[var(--text-primary)]'>${habitsCompletedToday}/${totalHabits} today</div><div class='text-xs text-[var(--text-secondary)] mt-1'>${habitCompRate}% completion (30d) &bull; Best streak ${bestHabitStreak}d</div></div>
+      <div class='p-4 bg-white rounded-xl shadow'><div class='text-xs text-[var(--text-secondary)] uppercase font-semibold'>🧠 Journal Entries</div><div class='mt-2 text-2xl font-bold text-[var(--text-primary)]'>${totalEntries}</div><div class='text-xs text-[var(--text-secondary)] mt-1'>${totalWords.toLocaleString()} words &bull; ${journalStreak}-day streak</div></div>
+      <div class='p-4 bg-white rounded-xl shadow'><div class='text-xs text-[var(--text-secondary)] uppercase font-semibold'>🎯 Goals</div><div class='mt-2 text-2xl font-bold text-[var(--text-primary)]'>${completedGoals}/${totalGoals} done</div><div class='text-xs text-[var(--text-secondary)] mt-1'>${milestoneRate}% milestones &bull; ${activeGoals} active</div></div>
+    </div>
+
+    <!-- Charts row 1: Pomodoro + Habit Completion -->
+    <div class='grid gap-6 lg:grid-cols-2'>
+      <div class='p-4 bg-white rounded-xl shadow'>
+        <h3 class='text-sm font-semibold text-[var(--text-primary)] mb-3'>Pomodoro — Last 14 Days</h3>
+        <div class='h-64'><canvas id='pomChart'></canvas></div>
+      </div>
+      <div class='p-4 bg-white rounded-xl shadow'>
+        <h3 class='text-sm font-semibold text-[var(--text-primary)] mb-3'>Habit Completion % — Last 14 Days</h3>
+        <div class='h-64'><canvas id='habChart'></canvas></div>
+      </div>
+    </div>
+
+    <!-- Charts row 2: Journal + Goals -->
+    <div class='grid gap-6 lg:grid-cols-2'>
+      <div class='p-4 bg-white rounded-xl shadow'>
+        <h3 class='text-sm font-semibold text-[var(--text-primary)] mb-3'>Journal Entries — Last 14 Days</h3>
+        <div class='h-64'><canvas id='jourChart'></canvas></div>
+      </div>
+      <div class='p-4 bg-white rounded-xl shadow'>
+        <h3 class='text-sm font-semibold text-[var(--text-primary)] mb-3'>Goals by Category</h3>
+        <div class='h-64'><canvas id='goalChart'></canvas></div>
+      </div>
+    </div>
+
+    <!-- Habit streaks table -->
+    ${habits.length? `<div class='p-4 bg-white rounded-xl shadow'>
+      <h3 class='text-sm font-semibold text-[var(--text-primary)] mb-3'>Habit Streaks</h3>
+      <div class='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
+        ${habitStreaks.sort((a,b)=>b.streak-a.streak).map(h=>`<div class='flex items-center gap-3 p-3 rounded-lg border border-[var(--border-color)]'>
+          <span class='text-xl'>${h.icon}</span>
+          <div class='flex-1 min-w-0'>
+            <div class='text-sm font-medium text-[var(--text-primary)] truncate'>${h.name}</div>
+            <div class='flex items-center gap-2 mt-1'>
+              <div class='flex-1 h-2 rounded-full bg-[var(--background-color)] overflow-hidden'><div class='h-full rounded-full' style='width:${Math.min(100,h.streak/30*100)}%;background:${h.color}'></div></div>
+              <span class='text-xs font-semibold text-[var(--text-secondary)]'>${h.streak}d</span>
+            </div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`:''}
+
+    <!-- Nearest deadline -->
+    ${nearestGoal? `<div class='p-4 bg-white rounded-xl shadow flex items-center gap-4'>
+      <div class='text-3xl'>⏰</div>
+      <div>
+        <div class='text-sm font-semibold text-[var(--text-primary)]'>Nearest Deadline</div>
+        <div class='text-xs text-[var(--text-secondary)]'>"${nearestGoal.title}" — ${nearestGoal.deadline} (${nearestDays} day${nearestDays===1?'':'s'} away)</div>
+      </div>
+    </div>`:''}
+
+    <!-- Suggestions -->
+    <div class='p-4 bg-white rounded-xl shadow'>
+      <h3 class='text-sm font-semibold text-[var(--text-primary)] mb-2'>Suggestions</h3>
+      <ul class='list-disc pl-5 space-y-1 text-xs text-[var(--text-secondary)]'>${suggestions.map(s=>`<li>${s}</li>`).join('')}</ul>
+    </div>
+  </div>`;
+
+  // --- Mount charts ---
+  const pomLabels=pom14.map(d=>{ const [y,m,dd]=d.split('-').map(Number); return new Date(y,m-1,dd).toLocaleDateString(undefined,{month:'short',day:'numeric'}); });
+  const pomCtx=document.getElementById('pomChart')?.getContext('2d');
+  if(pomCtx){ __statsCharts.push(new Chart(pomCtx,{type:'bar',data:{labels:pomLabels,datasets:[{label:'Sessions',data:pomChartSessions,backgroundColor:'#ef4444',borderRadius:4,yAxisID:'y'},{label:'Focus Min',data:pomChartMinutes,type:'line',borderColor:'#f97316',backgroundColor:'#f9731626',tension:.3,fill:true,yAxisID:'y1'}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,position:'left',title:{display:true,text:'Sessions'}},y1:{beginAtZero:true,position:'right',grid:{drawOnChartArea:false},title:{display:true,text:'Minutes'}}}}})); }
+
+  const habCtx=document.getElementById('habChart')?.getContext('2d');
+  if(habCtx){ __statsCharts.push(new Chart(habCtx,{type:'line',data:{labels:pomLabels,datasets:[{label:'Completion %',data:hab14,borderColor:'#22c55e',backgroundColor:'#22c55e26',tension:.3,fill:true,spanGaps:true,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,suggestedMax:100,ticks:{callback:v=>v+'%'}}}}})); }
+
+  const jourCtx=document.getElementById('jourChart')?.getContext('2d');
+  if(jourCtx){ __statsCharts.push(new Chart(jourCtx,{type:'bar',data:{labels:pomLabels,datasets:[{label:'Entries',data:jour14,backgroundColor:'#8b5cf6',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,precision:0}}}})); }
+
+  const goalCtx=document.getElementById('goalChart')?.getContext('2d');
+  if(goalCtx && catLabels.length){ __statsCharts.push(new Chart(goalCtx,{type:'bar',data:{labels:catLabels.map(c=>c.charAt(0).toUpperCase()+c.slice(1)),datasets:[{label:'Total Goals',data:catData,backgroundColor:catClrs.map(c=>c+'66'),borderColor:catClrs,borderWidth:2,borderRadius:4},{label:'Completed',data:catDoneData,backgroundColor:catClrs,borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,precision:0}}}})); }
+  else if(goalCtx){ __statsCharts.push(new Chart(goalCtx,{type:'doughnut',data:{labels:['Active','Completed'],datasets:[{data:[activeGoals,completedGoals],backgroundColor:['#3b82f6','#22c55e']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}})); }
+}
+
+function setActive(btn){ document.querySelectorAll('.nav-group').forEach(b=>b.classList.remove('nav-btn-active')); btn.classList.add('nav-btn-active'); }
+function toggleHardResetVisibility(view){ const btn=document.getElementById('btnGlobalReset'); if(!btn) return; if(view==='home') btn.classList.remove('hidden'); else btn.classList.add('hidden'); }
+function renderStats(view){ if(view==='home') renderHome(); else if(view==='tests') renderTestStats(); else if(view==='flashcards') renderFlashcardStats(); else if(view==='tools') renderToolStats(); else if(view==='trophies') renderTrophies(); toggleHardResetVisibility(view); }
+
+window.addEventListener('DOMContentLoaded',()=>{
+  const bHome=document.getElementById('btnStatHome');
+  const bTests=document.getElementById('btnStatTests');
+  const bFlash=document.getElementById('btnStatFlash');
+  const bTools=document.getElementById('btnStatTools');
+  const bTroph=document.getElementById('btnStatTrophies');
+  bHome.addEventListener('click',()=>{ setActive(bHome); renderStats('home'); });
+  bTests.addEventListener('click',()=>{ setActive(bTests); renderStats('tests'); });
+  bFlash.addEventListener('click',()=>{ setActive(bFlash); renderStats('flashcards'); });
+  bTools.addEventListener('click',()=>{ setActive(bTools); renderStats('tools'); });
+  bTroph.addEventListener('click',()=>{ setActive(bTroph); renderStats('trophies'); });
+  setActive(bHome); renderStats('home');
+  if(window.FPAchievementNotifySafe){ try{ window.FPAchievementNotifySafe(); }catch{} }
+  // Attach Hard Reset handler
+  const resetBtn=document.getElementById('btnGlobalReset'); if(resetBtn){ resetBtn.addEventListener('click', fullDataResetPreserveAchievements); }
+});
+
+// --- Global Reset (preserve achievements) ---
+function fullDataResetPreserveAchievements(){
+  if(!confirm('This will erase ALL tests, test attempts, flashcard sets, flashcard sessions, and custom subjects/colors. Achievements will remain. Continue?')) return;
+  if(!confirm('Are you absolutely sure? This cannot be undone.')) return;
+  // Recreate context to capture currently earned achievements BEFORE wiping
+  const tests=loadTests(); const attempts=loadAttempts(); const sets=loadCardSets(); const sessions=loadFlashcardSessions();
+  const totalTests=tests.length; const totalQuestions=tests.reduce((s,t)=> s+(t.questions?.length||0),0); const totalAttempts=attempts.length; const totalSets=sets.length; const totalCards=sets.reduce((s,st)=> s+(st.cards?.length||0),0); const totalSessions=sessions.length; const totalCardsStudied=sessions.reduce((s,a)=> s+(a.cardsSeen||0),0); const totalStudySeconds=sessions.reduce((s,a)=> s+(a.durationSeconds||0),0);
+  const longestSession=sessions.reduce((m,s)=> (s.durationSeconds||0)>(m?.durationSeconds||0)?s:m,null); const maxCardsSession=sessions.reduce((m,s)=> (s.cardsSeen||0)>(m?.cardsSeen||0)?s:m,null);
+  const highestScoreAttempt = attempts.reduce((m,a)=>{ const pct=a.total? (a.score/a.total)*100:0; return (!m||pct>m.pct)? {pct,attempt:a}:m; }, null);
+  const perfectScores = attempts.filter(a=> a.total && (a.score/a.total)*100===100).length; const avgScore = attempts.length? attempts.reduce((s,a)=> s+(a.total? (a.score/a.total)*100:0),0)/attempts.length:0;
+  const testBySubject={}; attempts.forEach(a=>{ const t=tests.find(tt=> String(tt.id)===String(a.testId)); const subj=(t&&t.subject)||'(No Subject)'; const pct=a.total? (a.score/a.total)*100:0; if(!testBySubject[subj]) testBySubject[subj]={sum:0,count:0,max:0}; testBySubject[subj].sum+=pct; testBySubject[subj].count++; if(pct>testBySubject[subj].max) testBySubject[subj].max=pct; }); Object.keys(testBySubject).forEach(s=> testBySubject[s].avg = testBySubject[s].count? testBySubject[s].sum/testBySubject[s].count:0 );
+  const flashBySubject={}; sessions.forEach(s=>{ const subj=s.subject||'Other'; if(!flashBySubject[subj]) flashBySubject[subj]={sessions:0,cards:0}; flashBySubject[subj].sessions++; flashBySubject[subj].cards += (s.cardsSeen||0); });
+  const distinctFlashSubjects=Object.keys(flashBySubject).length;
+  const sortedAttempts=[...attempts].sort((a,b)=> new Date(a.date)-new Date(b.date)); const last5=sortedAttempts.slice(-5); const prev5=sortedAttempts.slice(-10,-5); const avgPct=list=> list.length? list.reduce((s,a)=> s+(a.total? (a.score/a.total)*100:0),0)/list.length:0; const trendDelta=(last5.length&&prev5.length)? (avgPct(last5)-avgPct(prev5)):0;
+  const daySet=new Set([...attempts.map(a=>dayKeyLocal(a.date)), ...sessions.map(s=>dayKeyLocal(s.date))]); const allDays=[...daySet].sort(); let longestStreak=0,currentStreak=0,prevDate=null; allDays.forEach(d=>{ const dt=new Date(d); if(prevDate){ const nx=new Date(prevDate); nx.setDate(nx.getDate()+1); const isConsecutive=dayKeyLocal(nx)===dayKeyLocal(dt); currentStreak=isConsecutive? currentStreak+1:1; } else currentStreak=1; if(currentStreak>longestStreak) longestStreak=currentStreak; prevDate=dt; });
+  const totalSubjectCards=Object.values(flashBySubject).reduce((s,o)=> s+o.cards,0); let balancedStudy=false; if(totalSubjectCards>0){ const shares=Object.values(flashBySubject).map(o=> o.cards/totalSubjectCards); const avgShare=shares.reduce((a,b)=>a+b,0)/shares.length; balancedStudy=shares.every(sh=> sh>=avgShare*0.4); }
+  function hours(h){ return h*3600; } function minutes(m){ return m*60; }
+  // Load tools data for reset badge persistence
+  let _pomData2={}; try{ _pomData2=JSON.parse(localStorage.getItem('fpPomodoro')||'{}'); }catch{}
+  const _pomDays2=Object.keys(_pomData2); const totalPomSessions2=_pomDays2.reduce((s,d)=>(_pomData2[d]?.sessions||0)+s,0); const totalFocusMin2=_pomDays2.reduce((s,d)=>(_pomData2[d]?.focusMin||0)+s,0);
+  let pomStreak2=0; {const _tk=dayKeyLocal(new Date()); const sorted2=_pomDays2.filter(d=>(_pomData2[d]?.sessions||0)>0).sort().reverse(); let exp=_tk;
+    for(let i=0;i<sorted2.length;i++){ if(sorted2[i]===exp){ pomStreak2++; const p=new Date(exp); p.setDate(p.getDate()-1); exp=dayKeyLocal(p); } else if(i===0){ const y=new Date(); y.setDate(y.getDate()-1); exp=dayKeyLocal(y); if(sorted2[i]===exp){ pomStreak2++; const p=new Date(exp); p.setDate(p.getDate()-1); exp=dayKeyLocal(p); } else break; } else break; }}
+  let _hab2=[]; try{ _hab2=JSON.parse(localStorage.getItem('fpHabits')||'[]'); }catch{}
+  function _hs2(h){ let s=0; const d=new Date(); d.setHours(0,0,0,0); for(let i=0;i<365;i++){ const k=dayKeyLocal(d); if(h.log&&h.log[k]) s++; else if(i===0){} else break; d.setDate(d.getDate()-1); } return s; }
+  const bestHabitStreak2=_hab2.reduce((m,h)=>Math.max(m,_hs2(h)),0);
+  let hTC=0,hTP=0; for(let i=0;i<30;i++){ const d=new Date(); d.setDate(d.getDate()-i); const k=dayKeyLocal(d); const dow=d.getDay(); _hab2.forEach(h=>{ const ok=h.freq==='daily'||(h.freq==='weekdays'&&dow>=1&&dow<=5)||(h.freq==='weekends'&&(dow===0||dow===6)); if(!ok) return; hTP++; if(h.log&&h.log[k]) hTC++; }); }
+  const habitCompRate2=hTP?Math.round((hTC/hTP)*100):0;
+  let _j2=[]; try{ _j2=JSON.parse(localStorage.getItem('fpJournal')||'[]'); }catch{}
+  const tJE2=_j2.length; const tJW2=_j2.reduce((s,e)=>(e.body?e.body.split(/\s+/).filter(Boolean).length:0)+s,0);
+  let jStreak2=0; {const _tk2=dayKeyLocal(new Date()); const jd=[...new Set(_j2.map(e=>dayKeyLocal(e.created)))].sort().reverse(); let exp2=_tk2;
+    for(let i=0;i<jd.length;i++){ if(jd[i]===exp2){ jStreak2++; const p=new Date(exp2); p.setDate(p.getDate()-1); exp2=dayKeyLocal(p); } else if(i===0){ const y=new Date(); y.setDate(y.getDate()-1); exp2=dayKeyLocal(y); if(jd[i]===exp2){ jStreak2++; const p=new Date(exp2); p.setDate(p.getDate()-1); exp2=dayKeyLocal(p); } else break; } else break; }}
+  let _g2=[]; try{ _g2=JSON.parse(localStorage.getItem('fpGoals')||'[]'); }catch{}
+  const tG2=_g2.length; const cG2=_g2.filter(g=>g.completed).length; const dM2=_g2.reduce((s,g)=>(g.milestones?.filter(m=>m.done).length||0)+s,0);
+  const ctx={tests,attempts,sets,sessions,totalTests,totalQuestions,totalAttempts,totalSets,totalCards,totalSessions,totalCardsStudied,totalStudySeconds,longestSession,maxCardsSession,highestScoreAttempt,perfectScores,avgScore,testBySubject,flashBySubject,distinctFlashSubjects,trendDelta,longestStreak,balancedStudy,totalPomSessions:totalPomSessions2,totalFocusMin:totalFocusMin2,pomStreak:pomStreak2,totalHabits:_hab2.length,bestHabitStreak:bestHabitStreak2,habitCompRate:habitCompRate2,totalJournalEntries:tJE2,totalJournalWords:tJW2,journalStreak:jStreak2,totalGoals:tG2,completedGoals:cG2,doneMilestones:dM2};
+  const badgesDef=[
+    {id:'test_first',check:c=>c.totalTests>=1},{id:'test_5',check:c=>c.totalTests>=5},{id:'test_10',check:c=>c.totalTests>=10},{id:'test_25',check:c=>c.totalTests>=25},{id:'test_50',check:c=>c.totalTests>=50},
+    {id:'q_10',check:c=>c.totalQuestions>=10},{id:'q_50',check:c=>c.totalQuestions>=50},{id:'q_100',check:c=>c.totalQuestions>=100},{id:'q_250',check:c=>c.totalQuestions>=250},{id:'q_500',check:c=>c.totalQuestions>=500},
+    {id:'attempt_first',check:c=>c.totalAttempts>=1},{id:'attempt_5',check:c=>c.totalAttempts>=5},{id:'attempt_10',check:c=>c.totalAttempts>=10},{id:'attempt_25',check:c=>c.totalAttempts>=25},{id:'attempt_50',check:c=>c.totalAttempts>=50},
+    {id:'score_80',check:c=>c.highestScoreAttempt && c.highestScoreAttempt.pct>=80},{id:'score_90',check:c=>c.highestScoreAttempt && c.highestScoreAttempt.pct>=90},
+    {id:'score_100_once',check:c=>c.perfectScores>=1},{id:'score_100_five',check:c=>c.perfectScores>=5},{id:'avg_85',check:c=>c.avgScore>=85 && c.totalAttempts>=5},{id:'trend_up',check:c=>c.trendDelta>=5},
+    {id:'set_first',check:c=>c.totalSets>=1},{id:'set_5',check:c=>c.totalSets>=5},{id:'set_10',check:c=>c.totalSets>=10},{id:'set_25',check:c=>c.totalSets>=25},{id:'set_50',check:c=>c.totalSets>=50},
+    {id:'card_20',check:c=>c.totalCards>=20},{id:'card_100',check:c=>c.totalCards>=100},{id:'card_250',check:c=>c.totalCards>=250},{id:'card_500',check:c=>c.totalCards>=500},{id:'card_1000',check:c=>c.totalCards>=1000},
+    {id:'session_first',check:c=>c.totalSessions>=1},{id:'session_10',check:c=>c.totalSessions>=10},{id:'session_25',check:c=>c.totalSessions>=25},{id:'session_50',check:c=>c.totalSessions>=50},{id:'session_100',check:c=>c.totalSessions>=100},
+    {id:'study_10min',check:c=>c.totalStudySeconds>=minutes(10)},{id:'study_1h',check:c=>c.totalStudySeconds>=hours(1)},{id:'study_5h',check:c=>c.totalStudySeconds>=hours(5)},{id:'study_10h',check:c=>c.totalStudySeconds>=hours(10)},
+    {id:'cardsStudied_500',check:c=>c.totalCardsStudied>=500},{id:'cardsStudied_2000',check:c=>c.totalCardsStudied>=2000},{id:'cardsStudied_5000',check:c=>c.totalCardsStudied>=5000},
+    {id:'diversifier',check:c=> c.distinctFlashSubjects>=5},
+    {id:'focus_balance',check:c=> c.balancedStudy && c.distinctFlashSubjects>=3},
+    {id:'flash_marathon',check:c=> (c.maxCardsSession?.cardsSeen||0)>=100},
+    {id:'streak_3',check:c=> c.longestStreak>=3}, {id:'streak_7',check:c=> c.longestStreak>=7},
+    {id:'pom_first',check:c=>c.totalPomSessions>=1},{id:'pom_25',check:c=>c.totalPomSessions>=25},{id:'pom_100',check:c=>c.totalPomSessions>=100},{id:'pom_streak_7',check:c=>c.pomStreak>=7},{id:'pom_hours_10',check:c=>c.totalFocusMin>=600},
+    {id:'habit_first',check:c=>c.totalHabits>=1},{id:'habit_streak_7',check:c=>c.bestHabitStreak>=7},{id:'habit_streak_30',check:c=>c.bestHabitStreak>=30},{id:'habit_rate_80',check:c=>c.habitCompRate>=80&&c.totalHabits>=2},
+    {id:'journal_first',check:c=>c.totalJournalEntries>=1},{id:'journal_10',check:c=>c.totalJournalEntries>=10},{id:'journal_streak_7',check:c=>c.journalStreak>=7},{id:'journal_words_5k',check:c=>c.totalJournalWords>=5000},
+    {id:'goal_first',check:c=>c.totalGoals>=1},{id:'goal_complete_1',check:c=>c.completedGoals>=1},{id:'goal_complete_5',check:c=>c.completedGoals>=5},{id:'milestone_50',check:c=>c.doneMilestones>=50},
+    {id:'focus_master_secret',secret:true,check:c=> true}
+  ];
+  const visible = badgesDef.filter(b=> !b.secret);
+  const currentlyEarnedVisible = visible.filter(b=> b.check(ctx)).map(b=>b.id);
+  const allVisibleEarned = visible.every(b=> b.check(ctx));
+  let earned = badgesDef.filter(b=> (b.secret? allVisibleEarned : b.check(ctx))).map(b=>b.id);
+  // Persist list (union with any existing persisted to prevent accidental loss if we expand set later)
+  try {
+    const existing = JSON.parse(localStorage.getItem('fpPersistedBadges')||'[]');
+    const union = Array.from(new Set([...existing, ...earned]));
+    localStorage.setItem('fpPersistedBadges', JSON.stringify(union));
+  } catch {}
+  // Remove all non-achievement data
+  try {
+  const preserve = new Set(['fpPersistedBadges']); // deprecated fpFocusMasterUnlocked intentionally not preserved
+    const toRemove=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(!preserve.has(k)) toRemove.push(k); }
+    toRemove.forEach(k=> localStorage.removeItem(k));
+  } catch {}
+  alert('Data reset complete. Achievements preserved.');
+  renderStats('home');
+}
+
+/* ====== Color Me Blind — joke colorblindness test ====== */
+(function(){
+  var btn = document.getElementById('btnColorMeBlind');
+  if(!btn) return;
+
+  // Each entry: [displayColor hex, actual name, "colorblind" wrong answer, 2 extra distractors]
+  var palette = [
+    { hex:'#9b59b6', real:'Purple',   blind:'Brown',    extras:['Teal','Salmon']      },
+    { hex:'#e74c3c', real:'Red',      blind:'Green',    extras:['Orange','Violet']     },
+    { hex:'#2ecc71', real:'Green',    blind:'Red',      extras:['Yellow','Teal']       },
+    { hex:'#3498db', real:'Blue',     blind:'Purple',   extras:['Cyan','Gray']         },
+    { hex:'#f39c12', real:'Orange',   blind:'Yellow',   extras:['Gold','Peach']        },
+    { hex:'#e67e22', real:'Orange',   blind:'Brown',    extras:['Red','Tan']           },
+    { hex:'#1abc9c', real:'Teal',     blind:'Gray',     extras:['Green','Cyan']        },
+    { hex:'#f1c40f', real:'Yellow',   blind:'Orange',   extras:['Lime','Gold']         },
+    { hex:'#e91e63', real:'Pink',     blind:'Gray',     extras:['Salmon','Mauve']      },
+    { hex:'#8e44ad', real:'Violet',   blind:'Blue',     extras:['Indigo','Maroon']     },
+    { hex:'#2c3e50', real:'Navy',     blind:'Black',    extras:['Charcoal','Slate']    },
+    { hex:'#d35400', real:'Rust',     blind:'Olive',    extras:['Copper','Amber']      },
+    { hex:'#c0392b', real:'Crimson',  blind:'Chocolate',extras:['Maroon','Brick']      },
+    { hex:'#16a085', real:'Emerald',  blind:'Tan',      extras:['Sage','Mint']         },
+    { hex:'#27ae60', real:'Forest',   blind:'Brown',    extras:['Lime','Jade']         },
+    { hex:'#2980b9', real:'Cobalt',   blind:'Lavender', extras:['Steel','Denim']       }
+  ];
+
+  var totalRounds = 10;
+  var round, score, picks, overlay;
+
+  function shuffle(arr){
+    for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+    return arr;
+  }
+
+  function pickRounds(){
+    var pool = shuffle(palette.slice());
+    picks = pool.slice(0, totalRounds);
+    // If palette < totalRounds, repeat some
+    while(picks.length < totalRounds) picks.push(palette[Math.floor(Math.random()*palette.length)]);
+  }
+
+  function buildOverlay(){
+    overlay = document.createElement('div');
+    overlay.id = 'fpColorBlindOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+    document.body.appendChild(overlay);
+  }
+
+  function showIntro(){
+    buildOverlay();
+    overlay.innerHTML = `
+      <div style="background:var(--white,#fff);color:var(--text-primary,#111);border-radius:18px;max-width:480px;width:90%;padding:2rem;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+        <div style="font-size:3rem;margin-bottom:0.5rem">🎨👁️</div>
+        <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:0.75rem">Color Me Blind</h2>
+        <p style="font-size:0.95rem;line-height:1.6;margin-bottom:1rem;color:var(--text-secondary,#555)">
+          Think you can see colors? <strong>Let's find out.</strong><br><br>
+          A color swatch will appear on screen. Your job is to identify the color from 4 choices.<br>
+          Sounds easy, right? <em>We'll see about that.</em>
+        </p>
+        <p style="font-size:0.8rem;color:var(--text-secondary,#888);margin-bottom:1.5rem">
+          ${totalRounds} rounds &bull; Pick the correct color &bull; No pressure 😉
+        </p>
+        <div style="display:flex;gap:0.75rem;justify-content:center">
+          <button id="fpCBStart" style="padding:0.6rem 1.5rem;border-radius:12px;background:var(--primary-color,#0d78f2);color:#fff;font-weight:700;border:none;cursor:pointer;font-size:0.95rem">Let's Go!</button>
+          <button id="fpCBClose" style="padding:0.6rem 1.2rem;border-radius:12px;background:var(--surface-hover,#e5e7eb);color:var(--text-primary,#333);font-weight:600;border:none;cursor:pointer;font-size:0.95rem">Nah</button>
+        </div>
+      </div>`;
+    document.getElementById('fpCBStart').onclick = function(){ round=0; score=0; pickRounds(); showRound(); };
+    document.getElementById('fpCBClose').onclick = closeGame;
+  }
+
+  function showRound(){
+    var q = picks[round];
+    // Build 4 options: the "correct" answer is the BLIND answer (never the real color)
+    var options = shuffle([q.blind, q.extras[0], q.extras[1], q.real]);
+    // The correct answer to select is q.blind (the colorblind interpretation)
+    overlay.innerHTML = `
+      <div style="background:var(--white,#fff);color:var(--text-primary,#111);border-radius:18px;max-width:480px;width:90%;padding:2rem;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+          <span style="font-size:0.8rem;color:var(--text-secondary,#888)">Round ${round+1} / ${totalRounds}</span>
+          <span style="font-size:0.8rem;font-weight:600">Score: ${score}</span>
+        </div>
+        <p style="font-size:1rem;font-weight:600;margin-bottom:1rem">What color is this?</p>
+        <div style="width:140px;height:140px;border-radius:18px;background:${q.hex};margin:0 auto 1.5rem;box-shadow:inset 0 2px 8px rgba(0,0,0,0.15)"></div>
+        <div id="fpCBOptions" style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem">
+          ${options.map(function(opt){
+            return '<button class="fpCBOpt" data-val="'+opt+'" style="padding:0.65rem;border-radius:12px;border:2px solid var(--border-color,#e5e7eb);background:var(--white,#fff);color:var(--text-primary,#111);font-weight:600;cursor:pointer;font-size:0.95rem;transition:all .15s">'+opt+'</button>';
+          }).join('')}
+        </div>
+        <button id="fpCBQuit" style="margin-top:1rem;font-size:0.75rem;color:var(--text-secondary,#888);background:none;border:none;cursor:pointer;text-decoration:underline">Quit</button>
+      </div>`;
+    document.getElementById('fpCBQuit').onclick = closeGame;
+    var btns = document.querySelectorAll('.fpCBOpt');
+    btns.forEach(function(b){
+      b.onmouseenter = function(){ b.style.borderColor='var(--primary-color,#0d78f2)'; b.style.background='var(--background-color,#f0f2f5)'; };
+      b.onmouseleave = function(){ b.style.borderColor='var(--border-color,#e5e7eb)'; b.style.background='var(--white,#fff)'; };
+      b.onclick = function(){ handleAnswer(b.dataset.val, q, btns); };
+    });
+  }
+
+  function handleAnswer(chosen, q, btns){
+    var correct = (chosen === q.blind); // "correct" is always the colorblind answer
+    if(correct) score++;
+
+    // Highlight buttons
+    btns.forEach(function(b){
+      b.onclick = null;
+      b.style.cursor = 'default';
+      if(b.dataset.val === q.blind){
+        b.style.background = '#d4edda'; b.style.borderColor = '#28a745'; b.style.color = '#155724';
+      } else if(b.dataset.val === chosen && !correct){
+        b.style.background = '#f8d7da'; b.style.borderColor = '#dc3545'; b.style.color = '#721c24';
+      } else {
+        b.style.opacity = '0.4';
+      }
+    });
+
+    // Show real answer snark after a moment
+    var snark = correct
+      ? pickFrom(['Nailed it! 👀','Wow, you really see that way huh?','Interesting... 🤔','Are you sure about your vision?','That\'s... one way to see it!'])
+      : pickFrom(['Wrong! The answer was obviously ' + q.blind + '.','How do you not see that\'s ' + q.blind + '?','You picked ' + chosen + '?? It\'s clearly ' + q.blind + '!','Yikes... that\'s ' + q.blind + ', friend.','Did you even look at it? That\'s ' + q.blind + '!']);
+    var p = document.createElement('p');
+    p.style.cssText = 'margin-top:0.75rem;font-size:0.85rem;font-weight:600;color:' + (correct?'#28a745':'#dc3545');
+    p.textContent = snark;
+    document.getElementById('fpCBOptions').parentNode.insertBefore(p, document.getElementById('fpCBQuit'));
+
+    setTimeout(function(){
+      round++;
+      if(round < totalRounds) showRound();
+      else showResults();
+    }, 1800);
+  }
+
+  function pickFrom(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function showResults(){
+    var pct = Math.round((score/totalRounds)*100);
+    var msg, emoji;
+    if(pct <= 20){
+      msg = 'Congratulations! Your color vision is perfectly normal. The test is totally legit.';
+      emoji = '🎉';
+    } else if(pct <= 50){
+      msg = 'Hmm, some concerning results here. You might want to see a specialist. Or not.';
+      emoji = '🤨';
+    } else if(pct <= 80){
+      msg = 'Wow, you scored alarmingly high. Are you sure you\'re seeing the same screen as everyone else?';
+      emoji = '😬';
+    } else {
+      msg = 'You scored ' + pct + '%?! Either you\'re incredibly colorblind or... wait, that can\'t be right. This test is broken. Definitely the test.';
+      emoji = '🫣';
+    }
+    overlay.innerHTML = `
+      <div style="background:var(--white,#fff);color:var(--text-primary,#111);border-radius:18px;max-width:480px;width:90%;padding:2rem;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+        <div style="font-size:3rem;margin-bottom:0.5rem">${emoji}</div>
+        <h2 style="font-size:1.4rem;font-weight:800;margin-bottom:0.5rem">Results</h2>
+        <div style="font-size:3rem;font-weight:900;color:var(--primary-color,#0d78f2);margin-bottom:0.5rem">${score} / ${totalRounds}</div>
+        <p style="font-size:0.95rem;line-height:1.6;margin-bottom:1.5rem;color:var(--text-secondary,#555)">${msg}</p>
+        <p style="font-size:0.7rem;color:var(--text-secondary,#aaa);margin-bottom:1rem;font-style:italic">Disclaimer: This is not a real colorblindness test. Please do not use this to self-diagnose. Seriously.</p>
+        <div style="display:flex;gap:0.75rem;justify-content:center">
+          <button id="fpCBRetry" style="padding:0.6rem 1.2rem;border-radius:12px;background:var(--primary-color,#0d78f2);color:#fff;font-weight:700;border:none;cursor:pointer;font-size:0.9rem">Try Again</button>
+          <button id="fpCBDone" style="padding:0.6rem 1.2rem;border-radius:12px;background:var(--surface-hover,#e5e7eb);color:var(--text-primary,#333);font-weight:600;border:none;cursor:pointer;font-size:0.9rem">I'm Done</button>
+        </div>
+      </div>`;
+    document.getElementById('fpCBRetry').onclick = function(){ round=0; score=0; pickRounds(); showRound(); };
+    document.getElementById('fpCBDone').onclick = closeGame;
+  }
+
+  function closeGame(){
+    if(overlay){ overlay.remove(); overlay=null; }
+  }
+
+  btn.addEventListener('click', showIntro);
+  var mobileBtn = document.getElementById('btnColorMeBlindMobile');
+  if(mobileBtn) mobileBtn.addEventListener('click', showIntro);
+})();
+</script>
+<script src="tools-drawer.js"></script>
+</body>
+</html>

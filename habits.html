@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusPath — Habits</title>
+<link rel="stylesheet" href="vendor/fonts/lexend.css"/>
+<link rel="stylesheet" href="vendor/fonts/gaegu.css"/>
+<script src="vendor/tailwind.js"></script>
+<script src="themes.js"></script>
+<script src="achievements.js"></script>
+<style type="text/tailwindcss">
+  :root{--primary-color:#0d78f2;--background-color:#f0f2f5;--text-primary:#111418;--text-secondary:#60748a;--white:#ffffff;--border-color:#e5e7eb}
+  body{font-family:'Lexend',sans-serif}
+  .heatmap-cell{width:14px;height:14px;border-radius:3px;transition:background .15s}
+</style>
+</head>
+<body class="bg-[var(--background-color)]">
+<div class="flex min-h-screen">
+  <aside class="w-64 hidden md:flex flex-col gap-4 p-4">
+    <div class="fp-section-card p-4 flex items-center gap-3">
+      <div class="w-8 h-8 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"/></svg>
+      </div>
+      <h1 class="text-[var(--text-primary)] text-2xl font-bold">FocusPath</h1>
+    </div>
+    <div class="flex flex-col gap-3">
+      <button id="btnAddHabit" class="fp-bubble-primary w-full flex items-center gap-3 px-4 py-3 font-medium">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 4v16m8-8H4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <span>New Habit</span>
+      </button>
+    </div>
+    <div class="fp-section-card p-4">
+      <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase mb-2">Overview</h4>
+      <div class="text-sm space-y-1">
+        <div class="flex justify-between text-[var(--text-primary)]"><span>Active habits</span><span id="statActive" class="font-semibold">0</span></div>
+        <div class="flex justify-between text-[var(--text-primary)]"><span>Completed today</span><span id="statToday" class="font-semibold">0</span></div>
+        <div class="flex justify-between text-[var(--text-primary)]"><span>Best streak</span><span id="statBest" class="font-semibold">0 days</span></div>
+      </div>
+    </div>
+    <div class="mt-auto pt-2"></div>
+  </aside>
+
+  <div class="flex-1 flex flex-col">
+    <script src="icons.js"></script>
+    <div class="px-4 pt-4 flex items-center justify-center">
+      <nav class="flex gap-3">
+        <a href="home.html" title="Home" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-home"/></svg></a>
+        <a href="flashcards.html" title="Flashcards" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-flashcards"/></svg></a>
+        <a href="test.html" title="Tests" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-tests"/></svg></a>
+        <a href="stats.html" title="Stats" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-stats"/></svg></a>
+      </nav>
+    </div>
+
+    <main class="flex-1 p-6 lg:p-8">
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h2 class="text-[var(--text-primary)] text-3xl font-bold">Habit Tracker</h2>
+        <button id="btnAddHabitMobile" class="fp-bubble-primary flex items-center gap-2 px-4 py-2 text-sm font-medium md:hidden">+ New Habit</button>
+      </div>
+      <div id="habitContent"></div>
+    </main>
+  </div>
+</div>
+
+<!-- Habit Modal -->
+<div id="habitModal" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center" style="display:none">
+  <div class="bg-[var(--white)] rounded-2xl shadow-2xl p-6 w-full max-w-md relative" style="border:1px solid var(--border-color)">
+    <button id="habitModalClose" class="absolute top-3 right-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xl">&times;</button>
+    <h3 class="text-[var(--text-primary)] text-lg font-bold mb-4" id="habitModalTitle">New Habit</h3>
+    <form id="habitForm" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Habit Name *</label>
+        <input id="hfName" type="text" required maxlength="60" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm" placeholder="e.g. Study 30 minutes"/>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Icon</label>
+          <select id="hfIcon" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm">
+            <option value="📖">📖 Study</option><option value="💪">💪 Exercise</option><option value="💧">💧 Water</option><option value="🧘">🧘 Meditate</option><option value="📝">📝 Journal</option><option value="🏃">🏃 Run</option><option value="📚">📚 Read</option><option value="🎯">🎯 Goal</option><option value="⏰">⏰ Wake up</option><option value="🍎">🍎 Eat healthy</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Color</label>
+          <select id="hfColor" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm">
+            <option value="#3b82f6">Blue</option><option value="#22c55e">Green</option><option value="#f59e0b">Amber</option><option value="#ef4444">Red</option><option value="#a855f7">Purple</option><option value="#14b8a6">Teal</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-[var(--text-primary)] mb-1">Frequency</label>
+        <select id="hfFreq" class="w-full rounded-lg border border-[var(--border-color)] bg-[var(--white)] text-[var(--text-primary)] px-3 py-2 text-sm">
+          <option value="daily">Daily</option><option value="weekdays">Weekdays only</option><option value="weekends">Weekends only</option>
+        </select>
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="submit" class="fp-bubble-primary px-6 py-2 font-medium flex-1">Save</button>
+        <button type="button" id="btnCancelHabit" class="fp-bubble px-4 py-2 font-medium">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORE = 'fpHabits';
+  function load(){ try { return JSON.parse(localStorage.getItem(STORE)||'[]'); } catch { return []; } }
+  function save(h){ localStorage.setItem(STORE, JSON.stringify(h)); }
+  function dateKey(d){ return d.toISOString().slice(0,10); }
+  const today = dateKey(new Date());
+
+  const content = document.getElementById('habitContent');
+  const modal = document.getElementById('habitModal');
+  const form = document.getElementById('habitForm');
+  let editingId = null;
+
+  function showModal(habit){
+    editingId = habit ? habit.id : null;
+    document.getElementById('habitModalTitle').textContent = habit ? 'Edit Habit' : 'New Habit';
+    document.getElementById('hfName').value = habit?.name || '';
+    document.getElementById('hfIcon').value = habit?.icon || '📖';
+    document.getElementById('hfColor').value = habit?.color || '#3b82f6';
+    document.getElementById('hfFreq').value = habit?.freq || 'daily';
+    modal.style.display = '';
+    document.getElementById('hfName').focus();
+  }
+  function hideModal(){ modal.style.display = 'none'; editingId = null; }
+
+  document.getElementById('btnAddHabit').addEventListener('click', () => showModal(null));
+  document.getElementById('btnAddHabitMobile').addEventListener('click', () => showModal(null));
+  document.getElementById('habitModalClose').addEventListener('click', hideModal);
+  document.getElementById('btnCancelHabit').addEventListener('click', hideModal);
+  modal.addEventListener('click', e => { if(e.target===modal) hideModal(); });
+
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const habits = load();
+    const data = {
+      id: editingId || 'hab_'+Date.now(),
+      name: document.getElementById('hfName').value.trim(),
+      icon: document.getElementById('hfIcon').value,
+      color: document.getElementById('hfColor').value,
+      freq: document.getElementById('hfFreq').value,
+      log: editingId ? (habits.find(h=>h.id===editingId)?.log||{}) : {},
+      created: editingId ? (habits.find(h=>h.id===editingId)?.created||Date.now()) : Date.now()
+    };
+    if(!data.name) return;
+    if(editingId){
+      const idx = habits.findIndex(h=>h.id===editingId);
+      if(idx>=0) habits[idx] = data;
+    } else { habits.push(data); }
+    save(habits); hideModal(); render();
+  });
+
+  function getStreak(habit){
+    let streak = 0;
+    const d = new Date();
+    if(!habit.log[dateKey(d)]) d.setDate(d.getDate()-1);
+    while(habit.log[dateKey(d)]){ streak++; d.setDate(d.getDate()-1); }
+    return streak;
+  }
+
+  function render(){
+    const habits = load();
+
+    // Stats
+    document.getElementById('statActive').textContent = habits.length;
+    document.getElementById('statToday').textContent = habits.filter(h=>h.log[today]).length;
+    const bestStreak = habits.reduce((best,h) => Math.max(best, getStreak(h)), 0);
+    document.getElementById('statBest').textContent = bestStreak + ' day'+(bestStreak!==1?'s':'');
+
+    if(!habits.length){
+      content.innerHTML = `<div class="text-center py-20">
+        <div class="text-5xl mb-4">✅</div>
+        <h3 class="text-[var(--text-primary)] text-xl font-semibold mb-2">No habits yet</h3>
+        <p class="text-[var(--text-secondary)] text-sm mb-4">Build consistency by tracking daily habits.</p>
+        <button onclick="document.getElementById('btnAddHabit').click()" class="fp-bubble-primary px-6 py-2 font-medium">Add a Habit</button>
+      </div>`;
+      return;
+    }
+
+    content.innerHTML = '';
+    habits.forEach(h => {
+      const streak = getStreak(h);
+      const isDone = !!h.log[today];
+
+      const card = document.createElement('div');
+      card.className = 'bg-[var(--white)] rounded-xl shadow-lg p-5 mb-4';
+      card.style.borderLeft = '4px solid '+h.color;
+
+      // Build heatmap (last 16 weeks = 112 days, GitHub-style)
+      const weeks = 16;
+      const cells = weeks * 7;
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); // End of current week (Saturday)
+      let heatmapHtml = '<div class="flex gap-[2px] mt-3 overflow-x-auto pb-1">';
+      for(let w=0; w<weeks; w++){
+        heatmapHtml += '<div class="flex flex-col gap-[2px]">';
+        for(let d=0; d<7; d++){
+          const cellDate = new Date(endDate);
+          cellDate.setDate(cellDate.getDate() - (weeks-1-w)*7 - (6-d));
+          const key = dateKey(cellDate);
+          const done = h.log[key];
+          const opacity = done ? '1' : '0.1';
+          const bg = done ? h.color : 'var(--text-secondary)';
+          const isT = key === today;
+          heatmapHtml += `<div class="heatmap-cell" style="background:${bg};opacity:${opacity};${isT?'outline:2px solid var(--primary-color);outline-offset:1px':''}" title="${key}${done?' ✓':''}"></div>`;
+        }
+        heatmapHtml += '</div>';
+      }
+      heatmapHtml += '</div>';
+
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <button data-toggle="${h.id}" class="w-10 h-10 rounded-full flex items-center justify-center text-lg transition-all ${isDone?'shadow-md':'border-2'}" style="${isDone?'background:'+h.color+';color:white':'border-color:'+h.color}">
+              ${isDone ? '✓' : h.icon}
+            </button>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-[var(--text-primary)] font-bold truncate">${esc(h.name)}</h3>
+              <div class="text-[var(--text-secondary)] text-xs">${streak>0?'🔥 '+streak+' day streak':'No streak yet'} · ${h.freq}</div>
+            </div>
+          </div>
+          <div class="flex gap-1 flex-shrink-0">
+            <button data-edit="${h.id}" class="fp-bubble px-2 py-1 text-xs">✏️</button>
+            <button data-del="${h.id}" class="fp-bubble px-2 py-1 text-xs text-red-500">🗑</button>
+          </div>
+        </div>
+        ${heatmapHtml}
+      `;
+
+      content.appendChild(card);
+
+      // Wire toggle
+      card.querySelector('[data-toggle]').addEventListener('click', () => {
+        const habits = load();
+        const habit = habits.find(x=>x.id===h.id);
+        if(!habit) return;
+        if(habit.log[today]) delete habit.log[today];
+        else habit.log[today] = true;
+        save(habits); render();
+      });
+      card.querySelector('[data-edit]').addEventListener('click', () => { showModal(h); });
+      card.querySelector('[data-del]').addEventListener('click', () => {
+        if(!confirm('Delete habit "'+h.name+'"?')) return;
+        save(load().filter(x=>x.id!==h.id)); render();
+      });
+    });
+  }
+
+  function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+  render();
+})();
+</script>
+<script src="tools-drawer.js"></script>
+</body></html>

@@ -1,0 +1,27 @@
+<script src="themes.js"></script>
+<style>
+  .fp-progress-dot { width:28px; height:28px; border-radius:50%; border:2px solid var(--border-color,#e5e7eb); display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; color:var(--text-secondary,#60748a); background:var(--white,#fff); }
+  .fp-progress-dot:hover { border-color:var(--primary-color,#0d78f2); }
+  .fp-progress-dot.active { border-color:var(--primary-color,#0d78f2); background:var(--primary-color,#0d78f2); color:#fff; }
+  .fp-progress-dot.answered { background:color-mix(in srgb, var(--primary-color,#0d78f2) 15%, transparent); border-color:var(--primary-color,#0d78f2); color:var(--primary-color,#0d78f2); }
+  .fp-progress-dot.flagged { border-color:#f59e0b; position:relative; }
+  .fp-progress-dot.flagged::after { content:'🚩'; position:absolute; top:-6px; right:-6px; font-size:10px; }
+  .fp-match-select { min-width:140px; }
+</style>
+<div id="testRunner" class="bg-white rounded-xl shadow p-6 max-w-2xl mx-auto flex flex-col">
+  <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
+    <h2 class="text-xl font-semibold">Running Test: <span id="runnerTitle"></span></h2>
+    <button id="btnFlagQ" class="px-3 py-1 text-xs rounded border border-[var(--border-color)] hover:bg-gray-100" title="Flag this question for review">🚩 Flag</button>
+  </div>
+  <div id="runnerProgressBar" class="mb-4">
+    <div class="flex items-center gap-1 mb-2 flex-wrap" id="runnerDots"></div>
+    <div class="w-full h-2 rounded-full bg-gray-200 overflow-hidden"><div id="runnerBar" class="h-full bg-[var(--primary-color)] transition-all duration-300 rounded-full" style="width:0%"></div></div>
+  </div>
+  <div id="runnerContent" class="flex-1 overflow-y-auto"></div>
+  <div class="mt-6 flex justify-between">
+    <button id="btnPrevQ" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Back</button>
+    <button id="btnNextQ" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Next</button>
+  </div>
+</div>
+</body>
+</html>

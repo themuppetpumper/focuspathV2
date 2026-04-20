@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusPath — Help &amp; Guide</title>
+<link rel="stylesheet" href="vendor/fonts/lexend.css"/>
+<link rel="stylesheet" href="vendor/fonts/gaegu.css"/>
+<script src="vendor/tailwind.js"></script>
+<script src="themes.js"></script>
+<script src="achievements.js"></script>
+<style type="text/tailwindcss">
+  :root{--primary-color:#0d78f2;--background-color:#f0f2f5;--text-primary:#111418;--text-secondary:#60748a;--white:#ffffff;--border-color:#e5e7eb}
+  body{font-family:'Lexend',sans-serif}
+  .help-section{background:var(--white);border:1px solid var(--border-color);border-radius:16px;padding:1.5rem;margin-bottom:1.25rem}
+  .help-section h3{font-size:1.1rem;font-weight:700;color:var(--text-primary);margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+  .help-section p,.help-section li{font-size:.875rem;line-height:1.7;color:var(--text-secondary)}
+  .help-section ul{padding-left:1.25rem;list-style:disc}
+  .help-section li{margin-bottom:.25rem}
+  .help-badge{display:inline-flex;align-items:center;gap:4px;background:color-mix(in srgb,var(--primary-color) 10%,transparent);color:var(--primary-color);font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px}
+  details summary{cursor:pointer;font-weight:600;font-size:.95rem;color:var(--text-primary);padding:.5rem 0}
+  details summary:hover{color:var(--primary-color)}
+  details[open] summary{margin-bottom:.5rem}
+</style>
+</head>
+<body class="bg-[var(--background-color)]">
+<div class="flex min-h-screen">
+  <aside class="w-64 hidden md:flex flex-col gap-4 p-4">
+    <div class="fp-section-card p-4 flex items-center gap-3">
+      <div class="w-8 h-8 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"/></svg>
+      </div>
+      <h1 class="text-[var(--text-primary)] text-2xl font-bold">FocusPath</h1>
+    </div>
+    <nav class="flex flex-col gap-2" id="helpNav">
+      <a href="#overview" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">📖 Overview</a>
+      <a href="#flashcards" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">🗂️ Flash Cards</a>
+      <a href="#tests" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">📝 Tests</a>
+      <a href="#pomodoro" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">🍅 Pomodoro</a>
+      <a href="#goals" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">🎯 Goals</a>
+      <a href="#journal" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">🧠 Journal</a>
+      <a href="#planner" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">📅 Planner</a>
+      <a href="#habits" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">✅ Habits</a>
+      <a href="#notes" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">📝 Cornell Notes</a>
+      <a href="#compare" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">📊 Compare</a>
+      <a href="#stats" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">📈 Statistics</a>
+      <a href="#importexport" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">📦 Import &amp; Export</a>
+      <a href="#tips" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">💡 Tips</a>
+      <a href="#faq" class="fp-bubble flex items-center gap-3 px-4 py-2 text-sm font-medium transition-colors">❓ FAQ</a>
+    </nav>
+    <div class="mt-auto pt-2"></div>
+  </aside>
+
+  <div class="flex-1 flex flex-col">
+    <script src="icons.js"></script>
+    <div class="px-4 pt-4 flex items-center justify-center">
+      <nav class="flex gap-3">
+        <a href="home.html" title="Home" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-home"/></svg></a>
+        <a href="flashcards.html" title="Flashcards" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-flashcards"/></svg></a>
+        <a href="test.html" title="Tests" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-tests"/></svg></a>
+        <a href="stats.html" title="Stats" class="fp-bubble-circle"><svg class="fp-icon"><use href="#ico-stats"/></svg></a>
+      </nav>
+    </div>
+
+    <main class="flex-1 p-6 lg:p-8 max-w-3xl mx-auto w-full">
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h2 class="text-[var(--text-primary)] text-3xl font-bold">Help &amp; Guide</h2>
+        <span class="help-badge">v2.0</span>
+      </div>
+
+      <!-- Overview -->
+      <div class="help-section" id="overview">
+        <h3>📖 What is FocusPath?</h3>
+        <p>FocusPath is an all-in-one study companion that works <strong>completely offline</strong>. It's designed to help you create, practice, and track your learning — all from one place. No accounts, no cloud — everything is stored right in your browser.</p>
+        <p class="mt-2">Here's what you get:</p>
+        <ul class="mt-1">
+          <li><strong>Flash Cards</strong> — Create card decks by subject and study them with timed sessions</li>
+          <li><strong>Tests</strong> — Build custom multiple-choice tests and track your scores over time</li>
+          <li><strong>Pomodoro Timer</strong> — Focus in 25-minute intervals with automatic break scheduling</li>
+          <li><strong>Goal Tracker</strong> — Set goals with milestones and deadlines</li>
+          <li><strong>Recall Journal</strong> — Write daily reflections using structured prompts</li>
+          <li><strong>Study Planner</strong> — Plan your weekly study schedule with a visual timetable</li>
+          <li><strong>Habit Tracker</strong> — Build and maintain daily study habits with streak tracking</li>
+          <li><strong>Cornell Notes</strong> — Take structured notes using the proven Cornell method</li>
+          <li><strong>Pre/Post Compare</strong> — Compare test attempts side-by-side to see your growth</li>
+          <li><strong>Statistics &amp; Achievements</strong> — Track all your progress with charts, badges, and streaks</li>
+        </ul>
+      </div>
+
+      <!-- Flash Cards -->
+      <div class="help-section" id="flashcards">
+        <h3>🗂️ Flash Cards</h3>
+        <p>Create flashcard sets organized by subject. Each card has a front (question/term) and back (answer/definition).</p>
+        <details>
+          <summary>How to use</summary>
+          <ul>
+            <li>Go to <strong>Flash Cards</strong> and click <strong>New Set</strong></li>
+            <li>Give your set a name, pick a subject, and add cards</li>
+            <li>Click <strong>Study</strong> on any set to start a timed session</li>
+            <li>Click the card to flip it and see the answer</li>
+            <li>Your sessions are tracked — cards seen, time spent, and subject coverage</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Tips</summary>
+          <ul>
+            <li>Keep cards short — one concept per card works best</li>
+            <li>Study across multiple subjects to keep things balanced</li>
+            <li>Revisit sets you haven't touched in a while for spaced repetition</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Importing &amp; Exporting Sets</summary>
+          <ul>
+            <li>Click <strong>Export Sets</strong> in the sidebar to export your flashcard data as a JSON file</li>
+            <li>If you have a set selected, you'll be asked whether to export just that set or all sets</li>
+            <li>You can optionally encrypt the export with a password for secure sharing</li>
+            <li>Click <strong>Import Sets</strong> and select a <code>.json</code> file to import flashcard sets</li>
+            <li>Encrypted files will prompt you for the password before importing</li>
+            <li>Duplicate set IDs are handled automatically — imported sets get new IDs if needed</li>
+            <li>Only flashcard files are accepted — test files will be rejected with a helpful message</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Tests -->
+      <div class="help-section" id="tests">
+        <h3>📝 Tests</h3>
+        <p>Build multiple-choice tests with as many questions as you like, then take them to measure your knowledge.</p>
+        <details>
+          <summary>How to use</summary>
+          <ul>
+            <li>Go to <strong>Tests</strong> and click <strong>New Test</strong></li>
+            <li>Add a test name, subject, and write your questions with answer options</li>
+            <li>Mark the correct answer for each question</li>
+            <li>Click <strong>Take Test</strong> to attempt it — your score and time are recorded</li>
+            <li>Review your answers after completing the test</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Tips</summary>
+          <ul>
+            <li>Take the same test multiple times to track improvement</li>
+            <li>Use the <strong>Pre/Post Compare</strong> tool to see exactly which questions you improved on</li>
+            <li>The Statistics page shows your score trends over time by subject</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Importing &amp; Exporting Tests</summary>
+          <ul>
+            <li>Click <strong>Export Tests</strong> in the sidebar to export your test data as a JSON file</li>
+            <li>If you have a test selected, you'll be asked whether to export just that test or all tests</li>
+            <li>You can optionally encrypt the export with a password — great for teachers sharing tests with students</li>
+            <li>Password-protected tests are automatically <strong>locked</strong> when imported, preventing students from editing them</li>
+            <li>Click <strong>Import Tests</strong> and select a <code>.json</code> file to import tests</li>
+            <li>Encrypted files will prompt for the password — incorrect passwords cause that test to be skipped</li>
+            <li>Duplicate test IDs are handled automatically — imported tests get new IDs if needed</li>
+            <li>Only test files are accepted — flashcard files will be rejected with a helpful message</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Pomodoro -->
+      <div class="help-section" id="pomodoro">
+        <h3>🍅 Pomodoro Timer</h3>
+        <p>The Pomodoro Technique breaks work into focused intervals (25 min) separated by short breaks (5 min), with a longer break (15 min) every 4 sessions.</p>
+        <details>
+          <summary>How to use</summary>
+          <ul>
+            <li>Go to <strong>Pomodoro Timer</strong> and click <strong>Start</strong> to begin a 25-minute focus session</li>
+            <li>When the timer ends, a break starts automatically</li>
+            <li>You can also switch to a break mid-session — your focus progress is <strong>saved</strong> and resumes after the break</li>
+            <li>A <strong>floating mini-timer</strong> appears on all other pages so you can track time while studying</li>
+            <li>Hover over the mini-timer for controls: take a break, resume focus, or stop</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Tips</summary>
+          <ul>
+            <li>Commit to finishing a full focus session before checking other tasks</li>
+            <li>Use breaks to stretch, hydrate, or look away from the screen</li>
+            <li>Your daily sessions and focus time are tracked on the Statistics page</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Goals -->
+      <div class="help-section" id="goals">
+        <h3>🎯 Goal Tracker</h3>
+        <p>Set study goals with optional deadlines and break them into milestones to track progress step by step.</p>
+        <details>
+          <summary>How to use</summary>
+          <ul>
+            <li>Click <strong>New Goal</strong> and fill in the title, category, and optional deadline</li>
+            <li>Add <strong>milestones</strong> — these are checkable sub-tasks that make up your goal</li>
+            <li>Check off milestones as you complete them — the progress bar updates automatically</li>
+            <li>Mark the entire goal as complete when you're done</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Journal -->
+      <div class="help-section" id="journal">
+        <h3>🧠 Recall Journal</h3>
+        <p>Write daily reflections about what you've learned. Recalling information from memory is one of the most effective study techniques.</p>
+        <details>
+          <summary>How to use</summary>
+          <ul>
+            <li>Go to <strong>Recall Journal</strong> and click <strong>New Entry</strong></li>
+            <li>Choose a prompt (or write freely) and recall what you studied today</li>
+            <li>Entries are grouped by date — you can search and filter them</li>
+            <li>Your writing streak is tracked on the Statistics page</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Why it works</summary>
+          <p>Active recall — retrieving information from memory — strengthens neural pathways far more effectively than re-reading notes. Writing without looking at your materials forces your brain to work harder, which means better retention.</p>
+        </details>
+      </div>
+
+      <!-- Planner -->
+      <div class="help-section" id="planner">
+        <h3>📅 Study Planner</h3>
+        <p>Create a visual weekly timetable with color-coded study blocks for each subject.</p>
+        <details>
+          <summary>How to use</summary>
+          <ul>
+            <li>Click <strong>Add Block</strong> to create a study block</li>
+            <li>Set the subject, day of the week, start/end times, and pick a color</li>
+            <li>Blocks appear on a weekly grid — drag-free visual planning</li>
+            <li>Click any block to edit or delete it</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Habits -->
+      <div class="help-section" id="habits">
+        <h3>✅ Habit Tracker</h3>
+        <p>Define daily, weekday, or weekend habits and check them off each day. Build streaks and see your consistency on a heatmap.</p>
+        <details>
+          <summary>How to use</summary>
+          <ul>
+            <li>Click <strong>New Habit</strong> — name it, pick an icon, color, and frequency</li>
+            <li>Each day, check the box next to habits you've completed</li>
+            <li>Your current streak and a 16-week heatmap show your consistency</li>
+            <li>Streaks and completion rates are tracked in Statistics</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Tips</summary>
+          <ul>
+            <li>Start with 2–3 habits — you can always add more later</li>
+            <li>Don't break the chain! Consecutive days build strong habits</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Cornell Notes -->
+      <div class="help-section" id="notes">
+        <h3>📝 Cornell Notes</h3>
+        <p>The Cornell method divides your notes into three sections: <strong>Cues</strong> (key questions/terms), <strong>Notes</strong> (detailed notes), and <strong>Summary</strong> (a brief recap).</p>
+        <details>
+          <summary>How to use</summary>
+          <ul>
+            <li>Click <strong>New Note</strong> and give it a title</li>
+            <li>Fill in the <strong>Cue</strong> column with key terms or questions</li>
+            <li>Write detailed <strong>Notes</strong> in the main section</li>
+            <li>Write a <strong>Summary</strong> at the bottom in your own words</li>
+            <li>Notes auto-save as you type</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Compare -->
+      <div class="help-section" id="compare">
+        <h3>📊 Pre/Post Compare</h3>
+        <p>Compare two attempts of the same test side-by-side to see exactly where you improved and what still needs work.</p>
+        <details>
+          <summary>How to use</summary>
+          <ul>
+            <li>Go to <strong>Pre/Post Compare</strong></li>
+            <li>Select a test that you've taken at least twice</li>
+            <li>The tool shows a timeline of all attempts plus a detailed question-by-question comparison</li>
+            <li>Green = improved, Red = regressed, Gray = stayed the same</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Statistics -->
+      <div class="help-section" id="stats">
+        <h3>📈 Statistics &amp; Achievements</h3>
+        <p>The Statistics page pulls together data from all your study activities into one dashboard.</p>
+        <details>
+          <summary>What you'll find</summary>
+          <ul>
+            <li><strong>Stats Home</strong> — Today's Focus card showing daily Pomodoro/habits/journal/goals activity, plus all-time trophy cards</li>
+            <li><strong>Test Stats</strong> — Score trends, subject breakdown, time analysis, and suggestions</li>
+            <li><strong>Flashcard Stats</strong> — Study depth analysis, subject correlation with test performance, and session trends</li>
+            <li><strong>Tools Stats</strong> — Pomodoro sessions over time, habit completion rate, journal entry frequency, and goal progress</li>
+            <li><strong>Trophy Room</strong> — 60+ unlockable badges across all study activities</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Tips -->
+      <div class="help-section" id="importexport">
+        <h3>📦 Import &amp; Export</h3>
+        <p>FocusPath lets you export and import your tests and flashcard sets as JSON files. This is useful for backups, sharing with classmates, or transferring data between devices.</p>
+        <details>
+          <summary>How exporting works</summary>
+          <ul>
+            <li>On the <strong>Tests</strong> or <strong>Flashcards</strong> page, click the <strong>Export</strong> button in the sidebar</li>
+            <li>If you have an item selected, you'll be asked: export just that item, or everything?</li>
+            <li>Choose a filename and optionally set a password to encrypt the file</li>
+            <li>The file downloads as <code>.json</code> — share it, email it, or keep it as a backup</li>
+          </ul>
+        </details>
+        <details>
+          <summary>How importing works</summary>
+          <ul>
+            <li>Click the <strong>Import</strong> button in the sidebar and pick a <code>.json</code> file</li>
+            <li>If the file is encrypted, you'll be prompted for the password</li>
+            <li>Imported items are added alongside your existing data — nothing is overwritten</li>
+            <li>If an imported item has the same ID as an existing one, it gets a fresh ID automatically</li>
+          </ul>
+        </details>
+        <details>
+          <summary>File format safety</summary>
+          <ul>
+            <li>FocusPath marks exported files with a type identifier so they can't be mixed up</li>
+            <li>Importing a <strong>test file on the Flashcards page</strong> (or vice versa) will show a clear error message directing you to the correct page</li>
+            <li>Corrupted or invalid JSON files are rejected with an error message</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Password-protected exports</summary>
+          <ul>
+            <li>Both tests and flashcards support <strong>AES-256 encrypted</strong> exports</li>
+            <li>Encryption uses PBKDF2 key derivation — your password is never stored in the file</li>
+            <li>Password-protected <strong>tests</strong> are automatically locked on import, preventing editing — ideal for teachers distributing exams</li>
+            <li>If the wrong password is entered during import, that item is skipped (not lost)</li>
+          </ul>
+        </details>
+        <details>
+          <summary>Tips for sharing</summary>
+          <ul>
+            <li><strong>Teachers:</strong> Export a test with a password, then share the file and password separately with students</li>
+            <li><strong>Study groups:</strong> Export flashcard sets and share the JSON file — everyone can import it</li>
+            <li><strong>Backups:</strong> Periodically export all tests and all flashcard sets to keep a backup copy</li>
+            <li><strong>New device:</strong> Export everything from one browser and import on another to transfer your data</li>
+          </ul>
+        </details>
+      </div>
+
+      <!-- Tips -->
+      <div class="help-section" id="tips">
+        <h3>💡 Study Tips</h3>
+        <ul>
+          <li><strong>Active Recall</strong> — Test yourself instead of re-reading. Use flash cards and the Recall Journal.</li>
+          <li><strong>Spaced Repetition</strong> — Review material at increasing intervals. Don't cram everything in one day.</li>
+          <li><strong>Pomodoro Sessions</strong> — 25 minutes of focused work beats hours of distracted studying.</li>
+          <li><strong>Track Everything</strong> — The Statistics page shows patterns you'd never notice on your own.</li>
+          <li><strong>Be Consistent</strong> — Small daily effort beats occasional marathon sessions. Use the Habit Tracker to stay on course.</li>
+          <li><strong>Mix Subjects</strong> — Interleaving different topics in one session improves long-term retention.</li>
+          <li><strong>Write Summaries</strong> — After each study session, write a quick journal entry about what you learned without looking at your notes.</li>
+        </ul>
+      </div>
+
+      <!-- FAQ -->
+      <div class="help-section" id="faq">
+        <h3>❓ Frequently Asked Questions</h3>
+        <details>
+          <summary>Where is my data stored?</summary>
+          <p>Everything is stored in your browser's local storage. No data is sent anywhere — it all stays on your device. This means it works fully offline but is tied to this browser.</p>
+        </details>
+        <details>
+          <summary>Can I use this offline?</summary>
+          <p>Yes! FocusPath is a Progressive Web App (PWA). After your first visit, all pages and assets are cached. You can study without an internet connection.</p>
+        </details>
+        <details>
+          <summary>How do I install it as an app?</summary>
+          <p>On Chrome/Edge, look for the install icon in the address bar. On mobile, tap "Add to Home Screen" from the browser menu. It will work just like a native app.</p>
+        </details>
+        <details>
+          <summary>What does "Soft Reset" do?</summary>
+          <p>Soft reset hides existing items (tests or flashcard sets) from the main page but keeps them in your statistics. It's useful for a fresh start without losing historical data.</p>
+        </details>
+        <details>
+          <summary>What does "Hard Reset" do?</summary>
+          <p>Hard reset erases all tests, attempts, flashcard sets, and sessions — but <strong>preserves your achievement badges</strong>. It cannot be undone.</p>
+        </details>
+        <details>
+          <summary>What's the 🧰 button in the nav bar?</summary>
+          <p>That's the <strong>Tools Drawer</strong>. It gives you quick access to all study tools from any page — Pomodoro, Goals, Journal, Planner, Habits, Cornell Notes, and Compare.</p>
+        </details>
+        <details>
+          <summary>How do themes work?</summary>
+          <p>Click the palette icon 🎨 on the home page to open the theme picker. Themes change the app's colors across all pages. Your choice is saved automatically.</p>
+        </details>
+        <details>
+          <summary>Can I see this welcome guide again?</summary>
+          <p>You can always come back to this Help page! It's accessible from the 🧰 Tools menu on every page.</p>
+        </details>
+      </div>
+
+      <div class="text-center mt-8 mb-4">
+        <a href="home.html" class="fp-bubble-primary inline-flex items-center gap-2 px-6 py-3 font-semibold text-sm">← Back to Home</a>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="tools-drawer.js"></script>
+</body>
+</html>

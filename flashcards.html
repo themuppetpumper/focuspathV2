@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusPath — Flashcards (Shell)</title>
+<link rel="stylesheet" href="vendor/fonts/lexend.css"/>
+<link rel="stylesheet" href="vendor/fonts/gaegu.css"/>
+<script src="vendor/tailwind.js"></script>
+<script src="themes.js"></script>
+<script src="achievements.js"></script>
+<script src="card-builder.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
+<style type="text/tailwindcss">
+  :root{--primary-color:#0d78f2;--background-color:#f0f2f5;--text-primary:#111418;--text-secondary:#60748a;--white:#ffffff;--border-color:#e5e7eb}
+  body{font-family:'Lexend',sans-serif}
+  .hover-bg-primary-light:hover{background-color:#e6f2ff}
+  .test-item { border: 1px solid var(--border-color); border-radius: 0.5rem; transition: background-color .2s ease, border-color .2s ease; }
+  .test-item:hover { background: var(--surface-hover); }
+  .test-item.selected { background: rgba(13,120,242,0.10); border-color: var(--primary-color); }
+  /* (Soft Reset button removed; logic now in stats page) */
+</style>
+</head>
+<body class="bg-[var(--background-color)]">
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="w-64 hidden md:flex flex-col gap-4 p-4">
+    <div class="fp-section-card p-4 flex items-center gap-3">
+      <div class="w-8 h-8 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"/></svg>
+      </div>
+      <h1 class="text-[var(--text-primary)] text-2xl font-bold">FocusPath</h1>
+    </div>
+
+    <div class="flex flex-col gap-3">
+  <button id="btnFlashHome" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5z"/></svg>
+        <span>Flashcard Home</span>
+      </button>
+  <button id="btnNewSet" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11 11V6h2v5h5v2h-5v5h-2v-5H6v-2h5z"/></svg>
+        <span>New Set</span>
+      </button>
+  <button id="btnImportSets" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3v10m0 0 4-4m-4 4-4-4M20 18v2H4v-2"/></svg>
+        <span>Import Sets</span>
+      </button>
+  <button id="btnExportSets" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21V9m0 0 4 4m-4-4-4 4M4 18v2h16v-2"/></svg>
+        <span>Export Sets</span>
+      </button>
+    </div>
+
+    <div class="fp-section-card p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase">Sets</h4>
+        <button id="btnTrashAllSets" class="text-red-500 hover:text-red-700 text-xs font-medium flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V4h6v3m2 0v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V7z"/>
+          </svg>
+          Trash All
+        </button>
+      </div>
+      <div id="cardList" class="flex flex-col gap-2 max-h-[55vh] overflow-auto"></div>
+    </div>
+
+    <div class="mt-auto pt-2"></div>
+  </aside>
+
+  <!-- Main column -->
+  <div class="flex-1 flex flex-col">
+    <script src="icons.js"></script>
+    <!-- Top nav -->
+  <div class="px-4 pt-4 flex items-center justify-center">
+      <nav class="flex gap-3">
+        <a href="home.html" title="Home" aria-label="Home" class="fp-bubble-circle"><svg class="fp-icon" aria-hidden="true"><use href="#ico-home"/></svg></a>
+        <a href="test.html" title="Tests" aria-label="Tests" class="fp-bubble-circle"><svg class="fp-icon" aria-hidden="true"><use href="#ico-tests"/></svg></a>
+        <a href="stats.html" title="Statistics" aria-label="Statistics" class="fp-bubble-circle"><svg class="fp-icon" aria-hidden="true"><use href="#ico-stats"/></svg></a>
+      </nav>
+      <!-- Removed trailing profile bubble -->
+    </div>
+
+    <main class="flex-1 p-6 lg:p-8">
+  <h2 id="pageTitle" class="text-[var(--text-primary)] text-3xl font-bold mb-6">Flashcards</h2>
+
+      <div id="centerGrid" class="grid grid-cols-1 gap-8">
+        <div id="flashContent" class="rounded-lg p-0">
+          <div id="flashcardHomePlaceholder" class="min-h-[46vh] flex items-center justify-center text-[var(--text-secondary)]">
+            Welcome to Flashcards. Create a new set to get started.
+          </div>
+          <!-- Copyright footer moved to fixed position below -->
+        </div>
+
+        <div id="secondaryArea" class="bg-white rounded-lg shadow p-6 hidden"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+  function loadCardSets(){ try { return JSON.parse(localStorage.getItem('flashcardSets')||'[]'); } catch { return []; } }
+  function saveCardSets(arr){ localStorage.setItem('flashcardSets', JSON.stringify(arr)); }
+  function deleteAllSets(){ if(confirm('Delete ALL flashcard sets? This cannot be undone.')){ saveCardSets([]); window.__selectedSetId=null; renderFlashcardSets(); const primary=document.getElementById('flashContent'); if(primary) primary.innerHTML='<div class="min-h-[46vh] flex items-center justify-center text-[var(--text-secondary)]">All sets deleted.</div>'; } }
+  function downloadJSONFile(name,data){ const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},0); }
+
+  // Minimal crypto reuse for optional protected export
+  const fcEnc = new TextEncoder(); const fcDec = new TextDecoder();
+  function fcToB64(buf){ const bytes=new Uint8Array(buf); let bin=''; for(let i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]); return btoa(bin); }
+  function fcFromB64(b64){ const bin=atob(b64); const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); return bytes.buffer; }
+  function fcRandom(len){ const a=new Uint8Array(len); crypto.getRandomValues(a); return a; }
+  async function fcDerive(pwd,salt){ const keyMat=await crypto.subtle.importKey('raw',fcEnc.encode(pwd),{name:'PBKDF2'},false,['deriveKey']); return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},keyMat,{name:'AES-GCM',length:256},false,['encrypt','decrypt']); }
+  async function fcEncrypt(obj,pwd){ const iv=fcRandom(12); const salt=fcRandom(16); const key=await fcDerive(pwd,salt); const plain=fcEnc.encode(JSON.stringify(obj)); const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,plain); return { _fp:'FocusPathFlash', encrypted:true, algo:'AES-GCM', kdf:'PBKDF2-SHA256', iter:150000, iv:fcToB64(iv), salt:fcToB64(salt), ciphertext:fcToB64(ct), meta:{ count:Array.isArray(obj)?obj.length:1 } }; }
+  async function fcDecrypt(pkg,pwd){ const iv=new Uint8Array(fcFromB64(pkg.iv)); const salt=new Uint8Array(fcFromB64(pkg.salt)); const key=await fcDerive(pwd,salt); const data=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,fcFromB64(pkg.ciphertext)); return JSON.parse(fcDec.decode(new Uint8Array(data))); }
+  function loadUI(file, containerId, initFn){
+    const el=document.getElementById(containerId); if(!el) return;
+    window.__fpBuilderActive=true;
+    // Try inline template first (works on file:// protocol), fall back to fetch
+    const tpl=document.querySelector('template[data-file="'+file+'"]');
+    if(tpl){ el.innerHTML=tpl.innerHTML; if(initFn && typeof window[initFn]==='function') window[initFn](); return; }
+    fetch(file).then(r=>r.text()).then(html=>{ el.innerHTML=html; if(initFn && typeof window[initFn]==='function') window[initFn](); }).catch(e=>{ console.error('loadUI fetch failed for '+file+':', e); window.__fpBuilderActive=false; el.innerHTML='<div class="p-8 text-center text-red-600">Failed to load '+file+'. Try refreshing the page.</div>'; });
+  }
+
+  function renderFlashcardSets(){
+    const list = document.getElementById('cardList');
+  const sets = loadCardSets();
+    list.innerHTML='';
+  if(!sets.length){ list.innerHTML='<div class="text-sm text-gray-400">No saved sets yet.</div>'; if(window.FPAchievementNotifySafe){ try{ window.FPAchievementNotifySafe(); }catch{} } return; }
+  if(window.FPAchievementNotifySafe){ try{ window.FPAchievementNotifySafe(); }catch{} }
+    sets.forEach(set=>{
+      const div=document.createElement('div');
+      div.className='p-3 bg-white shadow-sm flex items-center justify-between test-item';
+      div.dataset.id=set.id;
+      div.innerHTML=`<div class="flex flex-col cursor-pointer flex-1"><span class="font-medium text-[var(--text-primary)]">${set.name||'Untitled Set'}</span><span class="text-xs text-[var(--text-secondary)]">${set.subject||''}</span></div>
+        <button class="ml-2 text-red-500 hover:text-red-700" title="Delete Set">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V4h6v3m2 0v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V7z"/>
+          </svg>
+        </button>`;
+      // Click area (exclude delete button)
+      div.querySelector('div').addEventListener('click',()=>{
+        window.__selectedSetId=set.id;
+        document.querySelectorAll('#cardList .test-item').forEach(n=>n.classList.toggle('selected', n.dataset.id===String(set.id)));
+        // Show basic set actions placeholder for now
+  const primary=document.getElementById('flashContent');
+  // Count starred cards for this set
+  const starredCards = (typeof fpGetStars==='function'? fpGetStars() : []);
+  const starredInSet = set.cards.filter(c=> starredCards.includes(c.id)).length;
+  // Count cards due (box 1 or 2)
+  const boxes = typeof fpGetBoxes==='function'? fpGetBoxes() : {};
+  const dueCount = set.cards.filter(c=> (boxes[c.id]||1) <= 2).length;
+  primary.innerHTML=`<div class="flex justify-center items-center w-full h-full p-6"><div class="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center space-y-6">
+    <h2 class="text-xl font-semibold text-[var(--text-primary)]">${set.name}</h2>
+    <p class="text-sm text-[var(--text-secondary)]">${set.desc||''}</p>
+    <div class="flex justify-center gap-3 text-xs text-[var(--text-secondary)]">
+      <span>${set.cards.length} cards</span>
+      ${dueCount?'<span>&middot; '+dueCount+' due</span>':''}
+      ${starredInSet?'<span>&middot; '+starredInSet+' starred</span>':''}
+    </div>
+    <div class="space-y-2 text-left text-sm">
+      <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="chkReverse" class="rounded"/> <span>Reverse Mode</span> <span class="text-xs text-[var(--text-secondary)]">(show answer first)</span></label>
+      <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="chkStarred" class="rounded" ${starredInSet?'':'disabled'}/> <span>Starred Only</span> <span class="text-xs text-[var(--text-secondary)]">(${starredInSet} cards)</span></label>
+      <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="chkSmart" class="rounded" checked/> <span>Smart Review</span> <span class="text-xs text-[var(--text-secondary)]">(Leitner priority)</span></label>
+    </div>
+    <div class="space-y-3">
+      <button id="btnStudySet" class="w-full px-4 py-2 bg-[var(--primary-color)] text-white rounded-xl shadow hover:opacity-90">Study</button>
+      <button id="btnEditSet" class="w-full px-4 py-2 bg-gray-200 text-[var(--text-primary)] rounded-xl shadow hover:bg-gray-300">Edit Set</button>
+      <button id="btnDupeSet" class="w-full px-4 py-2 bg-gray-100 text-[var(--text-primary)] rounded-xl shadow hover:bg-gray-200 text-sm">Duplicate Set</button>
+    </div>
+  </div></div>`;
+        document.getElementById('btnEditSet').addEventListener('click',()=>{
+          loadUI('card-builder.html','flashContent','initCardBuilder');
+          setTimeout(()=>{
+            const sets=loadCardSets();
+            const match=sets.find(s=>s.id===set.id);
+            if(match && typeof window.loadSetIntoBuilder==='function') window.loadSetIntoBuilder(match);
+          },150);
+        });
+  const studyBtn = document.getElementById('btnStudySet');
+  studyBtn?.addEventListener('click',()=>{
+    const opts = {
+      reverse: !!document.getElementById('chkReverse')?.checked,
+      starredOnly: !!document.getElementById('chkStarred')?.checked,
+      smartReview: !!document.getElementById('chkSmart')?.checked
+    };
+    startCardRunner(set.id, opts);
+  });
+  document.getElementById('btnDupeSet')?.addEventListener('click',()=>{
+    if(typeof duplicateCardSet==='function'){ duplicateCardSet(set.id); alert('Set duplicated!'); }
+  });
+      });
+      // Delete button
+      const delBtn = div.querySelector('button[title="Delete Set"]');
+      delBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(!confirm('Delete this set?')) return;
+        let all=loadCardSets();
+        all = all.filter(s=> String(s.id)!==String(set.id));
+        saveCardSets(all);
+        if(String(window.__selectedSetId)===String(set.id)) window.__selectedSetId=null;
+  renderFlashcardSets(); updateFlashcardDashboardIfHome?.();
+  const primary=document.getElementById('flashContent');
+        if(primary && !window.__selectedSetId) primary.innerHTML='<div class="min-h-[46vh] flex items-center justify-center text-[var(--text-secondary)]">Set deleted.</div>';
+      });
+      list.appendChild(div);
+    });
+  updateFlashcardDashboardIfHome?.();
+  }
+  window.renderFlashcardSets = renderFlashcardSets;
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    try { renderFlashcardSets(); } catch(e) { console.error('renderFlashcardSets error:', e); }
+    try { renderFlashcardDashboard(); } catch(e) { console.error('renderFlashcardDashboard error:', e); }
+    const btnHome=document.getElementById('btnFlashHome');
+    btnHome?.addEventListener('click',()=>{
+      window.__selectedSetId=null;
+      window.__fpBuilderActive=false;
+      document.querySelectorAll('#cardList .test-item').forEach(n=>n.classList.remove('selected'));
+  const primary=document.getElementById('flashContent');
+  primary.innerHTML='<div id="flashcardHomePlaceholder" class="min-h-[46vh] flex items-center justify-center text-[var(--text-secondary)]">Welcome to Flashcards. Create a new set to get started.</div>';
+  renderFlashcardDashboard();
+    });
+    const btnNew=document.getElementById('btnNewSet');
+    btnNew?.addEventListener('click',()=>{
+  loadUI('card-builder.html','flashContent','initCardBuilder');
+    });
+  const btnTrashAll=document.getElementById('btnTrashAllSets');
+  btnTrashAll?.addEventListener('click', deleteAllSets);
+
+    // Import/Export wiring
+    const btnExport=document.getElementById('btnExportSets');
+    const btnImport=document.getElementById('btnImportSets');
+    if(btnExport){ btnExport.addEventListener('click', async ()=>{
+      const sets=loadCardSets(); if(!sets.length){ alert('No sets to export.'); return; }
+      const selectedId = window.__selectedSetId;
+      let exportData, defaultName;
+      if(selectedId){
+        const selectedSet = sets.find(s=>String(s.id)===String(selectedId));
+        if(selectedSet && sets.length > 1){
+          const exportSelected = confirm('Export only the selected set?\n\nOK = Export selected set\nCancel = Export ALL sets');
+          if(exportSelected){
+            exportData = { _fp:'FocusPathFlash', sets:[selectedSet] };
+            defaultName = (selectedSet.name||'flashcard-set').substring(0,60);
+          } else {
+            exportData = { _fp:'FocusPathFlash', sets };
+            defaultName = 'flashcard-sets';
+          }
+        } else if(selectedSet){
+          exportData = { _fp:'FocusPathFlash', sets:[selectedSet] };
+          defaultName = (selectedSet.name||'flashcard-set').substring(0,60);
+        } else {
+          exportData = { _fp:'FocusPathFlash', sets };
+          defaultName = 'flashcard-sets';
+        }
+      } else {
+        exportData = { _fp:'FocusPathFlash', sets };
+        defaultName = 'flashcard-sets';
+      }
+      let base = prompt('Enter a filename (without extension) for the flashcard export:', defaultName);
+      if(base===null) return; base = (base.trim()||defaultName).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+      const wantPassword = confirm('Would you like to password-protect this export?');
+      if(wantPassword){
+        const mode = prompt('Enter a password:');
+        if(mode && mode.length > 0){
+          try { const pkg = await fcEncrypt(exportData, mode); downloadJSONFile(`${base}-protected.json`, pkg); } catch(e){ console.error(e); alert('Encryption failed. Exporting without protection.'); downloadJSONFile(`${base}.json`, exportData); } finally { updateFlashcardDashboardIfHome?.(); }
+          return;
+        }
+      }
+      downloadJSONFile(`${base}.json`, exportData); updateFlashcardDashboardIfHome?.();
+    }); }
+    if(btnImport){
+      const fileInput=document.createElement('input'); fileInput.type='file'; fileInput.accept='application/json'; fileInput.style.display='none'; document.body.appendChild(fileInput);
+      btnImport.addEventListener('click',()=>{ fileInput.value=''; fileInput.click(); });
+      fileInput.addEventListener('change', async e=>{
+        try {
+          const f=e.target.files && e.target.files[0]; if(!f) return; const text=await f.text(); const data=JSON.parse(text); let incoming=[];
+          // Cross-format validation: reject test files
+          if(data && data._fp === 'FocusPathTest'){ alert('This is a test export file. Please import it on the Tests page.'); return; }
+          if(data && data.encrypted && data.ciphertext && data._fp === 'FocusPathTest'){ alert('This is an encrypted test export. Please import it on the Tests page.'); return; }
+          if(Array.isArray(data)) incoming=data; else if(data && Array.isArray(data.sets)) incoming=data.sets; else if(data && data.encrypted && data.ciphertext){
+            if(data._fp === 'FocusPathTest'){ alert('This is an encrypted test file. Please import it on the Tests page.'); return; }
+            const pwd=prompt('Password for encrypted flashcard export?'); if(!pwd){ alert('Import canceled.'); return; }
+            try { const decd=await fcDecrypt(data,pwd); incoming = Array.isArray(decd)?decd : (decd.sets||[]); } catch(err){ alert('Decryption failed. Check password and try again.'); return; }
+          }
+          if(!incoming.length){ alert('No sets found in file.'); return; }
+          const existing=loadCardSets(); const ids=new Set(existing.map(s=>s.id)); let added=0;
+          incoming.forEach(raw=>{ if(!raw) return; const set={ id: raw.id||Date.now()+Math.random().toString(36).slice(2), subject: raw.subject||'', name: raw.name||'Imported Set', desc: raw.desc||'', cards: Array.isArray(raw.cards)? raw.cards.map(c=>({ id: c.id||Math.random().toString(36).slice(2), front: c.front||'', back: c.back||'', tags: Array.isArray(c.tags)?c.tags:[], hint: c.hint||'', image: c.image||null })) : [] }; if(ids.has(set.id)) set.id = set.id + '_' + Math.random().toString(36).slice(2,7); ids.add(set.id); existing.push(set); added++; });
+          saveCardSets(existing); renderFlashcardSets(); alert('Imported '+added+' set(s).'); updateFlashcardDashboardIfHome?.();
+        } catch(err){ console.error(err); alert('Import failed. Ensure the file is valid JSON.'); }
+      });
+    }
+  });
+</script>
+<script>
+// ---- Soft Reset (Flashcards) Masking Logic (trigger now in stats page) ----
+function softResetFlashActive(){ return localStorage.getItem('fpSoftResetFlash')==='1'; }
+function softResetFlashTs(){ const v=parseInt(localStorage.getItem('fpSoftResetFlashTs')||'0',10); return isNaN(v)?0:v; }
+const __origLoadCardSets = loadCardSets;
+const __origLoadFlashSessions = function(){ try { return JSON.parse(localStorage.getItem('flashcardSessions')||'[]'); } catch { return []; } };
+function setIdToTs(id){ const m=/^fcset_(\d+)/.exec(id||''); return m? parseInt(m[1],10):0; }
+window.loadCardSets = function(){ const arr=__origLoadCardSets(); if(!softResetFlashActive()) return arr; const ts=softResetFlashTs(); return arr.filter(s=> setIdToTs(s.id)>=ts); };
+window.loadFlashcardSessions = function(){ const arr=__origLoadFlashSessions(); if(!softResetFlashActive()) return arr; const ts=softResetFlashTs(); return arr.filter(s=> { const time=new Date(s.date).getTime(); return time>=ts; }); };
+</script>
+<script>
+// Flashcard Dashboard Logic
+function updateFlashcardDashboardIfHome(){ if(window.__selectedSetId==null && typeof renderFlashcardDashboard==='function'){ renderFlashcardDashboard(); } }
+function loadFlashcardSessions(){ try { return JSON.parse(localStorage.getItem('flashcardSessions')||'[]'); } catch { return []; } }
+function dayKeyLocal(d){ const dt=new Date(d); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; }
+let __fcCharts=[]; function destroyFcCharts(){ try{__fcCharts.forEach(c=>c && c.destroy && c.destroy());}catch{} __fcCharts=[]; }
+function renderFlashcardDashboard(){
+  if(typeof Chart==='undefined'){ setTimeout(renderFlashcardDashboard,150); return; }
+  const primary=document.getElementById('flashContent'); if(!primary) return; if(window.__selectedSetId){ return; }
+  if(window.__fpBuilderActive){ return; }
+  const sets=loadCardSets(); const sessions=loadFlashcardSessions();
+  const totalSets=sets.length; const totalSessions=sessions.length;
+  const uniqueDays = sessions.length ? new Set(sessions.map(s=>dayKeyLocal(s.date))).size : 0;
+  const totalCardsStudied = sessions.reduce((s,a)=> s + (a.cardsSeen||0),0);
+  const avgSessionCards = sessions.length ? Math.round(totalCardsStudied / sessions.length) : 0;
+  const timeSpent = sessions.reduce((s,a)=> s + (a.durationSeconds||0),0);
+  const avgSessionTime = sessions.length ? Math.round(timeSpent / sessions.length) : 0;
+  // Streak data
+  const streak = typeof fpGetStreak==='function' ? fpGetStreak() : {};
+  const curStreak = streak.currentStreak || 0;
+  const longestStreak = streak.longestStreak || 0;
+  // Cards due (Leitner box 1 or 2)
+  const allBoxes = typeof fpGetBoxes==='function' ? fpGetBoxes() : {};
+  let totalDue=0; sets.forEach(set=>{ (set.cards||[]).forEach(c=>{ if((allBoxes[c.id]||1)<=2) totalDue++; }); });
+  // Mastery % (box 3 out of all tracked)
+  let totalTracked=0, totalMastered=0;
+  sets.forEach(set=>{ (set.cards||[]).forEach(c=>{ totalTracked++; if((allBoxes[c.id]||1)===3) totalMastered++; }); });
+  const masteryPct = totalTracked ? Math.round((totalMastered/totalTracked)*100) : 0;
+  // Prepare per subject aggregation
+  const subjectAgg={}; sets.forEach(set=>{ const subj=set.subject||'Other'; if(!subjectAgg[subj]) subjectAgg[subj]={cards:0, sessions:0}; subjectAgg[subj].cards += (set.cards||[]).length; }); sessions.forEach(s=>{ const subj=s.subject||'Other'; if(!subjectAgg[subj]) subjectAgg[subj]={cards:0,sessions:0}; subjectAgg[subj].sessions++; });
+  let SUBJECT_COLORS={};
+  try {
+    const userMap = JSON.parse(localStorage.getItem('fpSubjectColors')||'{}');
+    SUBJECT_COLORS = { ...userMap };
+    // Ensure every subject present in data has a persistent color assignment
+    const allSubjects = new Set(Object.keys(subjectAgg));
+    sessions.forEach(s=> allSubjects.add(s.subject||'Other'));
+    const palette = ['#ef4444','#f59e0b','#0d78f2','#22c55e','#8b5cf6','#14b8a6','#6366f1','#ec4899','#10b981','#eab308','#0ea5e9','#fb923c','#84cc16','#f472b6','#38bdf8','#a855f7','#dc2626','#2563eb','#9333ea','#047857','#ea580c'];
+    const used = new Set(Object.values(SUBJECT_COLORS).map(c=>c.toLowerCase()));
+    let mutated=false;
+    allSubjects.forEach(subj=>{
+      if(!SUBJECT_COLORS[subj]){
+        let pick=null; for(const col of palette){ if(!used.has(col.toLowerCase())){ pick=col; break; } }
+        let guard=0; while(!pick && guard<50){ const cand='#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'); if(!used.has(cand.toLowerCase())) pick=cand; guard++; }
+        if(!pick) pick='#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0');
+        SUBJECT_COLORS[subj]=pick; userMap[subj]=pick; used.add(pick.toLowerCase()); mutated=true;
+      }
+    });
+    if(mutated){ localStorage.setItem('fpSubjectColors', JSON.stringify(userMap)); }
+  } catch {}
+  // Build HTML
+  destroyFcCharts();
+  primary.innerHTML = `
+    <div class="space-y-8">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="p-4 bg-white rounded-xl shadow">
+          <div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Total Sets</div>
+          <div class="mt-2 text-2xl font-bold text-[var(--text-primary)]">${totalSets}</div>
+        </div>
+        <div class="p-4 bg-white rounded-xl shadow">
+          <div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Study Sessions</div>
+          <div class="mt-2 text-2xl font-bold text-[var(--text-primary)]">${totalSessions}</div>
+        </div>
+        <div class="p-4 bg-white rounded-xl shadow">
+          <div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Cards Studied</div>
+          <div class="mt-2 text-2xl font-bold text-[var(--text-primary)]">${totalCardsStudied}</div>
+        </div>
+        <div class="p-4 bg-white rounded-xl shadow">
+          <div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Unique Days</div>
+          <div class="mt-2 text-2xl font-bold text-[var(--text-primary)]">${uniqueDays}</div>
+        </div>
+      </div>
+      ${curStreak||totalDue||masteryPct?`
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div class="p-4 bg-white rounded-xl shadow flex items-center gap-3">
+          <span style="font-size:1.5rem;">&#128293;</span>
+          <div>
+            <div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Study Streak</div>
+            <div class="text-2xl font-bold text-[var(--text-primary)]">${curStreak} <span class="text-sm font-normal text-[var(--text-secondary)]">day${curStreak!==1?'s':''}</span></div>
+            <div class="text-xs text-[var(--text-secondary)]">Longest: ${longestStreak} day${longestStreak!==1?'s':''}</div>
+          </div>
+        </div>
+        <div class="p-4 bg-white rounded-xl shadow">
+          <div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Cards Due</div>
+          <div class="mt-2 text-2xl font-bold ${totalDue?'text-amber-600':'text-green-600'}">${totalDue}</div>
+          <div class="text-xs text-[var(--text-secondary)]">${totalDue?'Need review':'All caught up!'}</div>
+        </div>
+        <div class="p-4 bg-white rounded-xl shadow">
+          <div class="text-xs text-[var(--text-secondary)] uppercase font-semibold">Mastery</div>
+          <div class="mt-2 text-2xl font-bold text-[var(--text-primary)]">${masteryPct}%</div>
+          <div class="text-xs text-[var(--text-secondary)]">${totalMastered}/${totalTracked} cards mastered</div>
+        </div>
+      </div>`:''}
+      <div class="grid gap-6 lg:grid-cols-3">
+        <div class="p-4 bg-white rounded-xl shadow lg:col-span-2">
+          <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">Cards Studied Over Time</h3>
+          <canvas id="fcLine"></canvas>
+        </div>
+        <div class="p-4 bg-white rounded-xl shadow">
+          <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">Sessions by Subject</h3>
+          <canvas id="fcDonut"></canvas>
+        </div>
+      </div>
+      <div class="grid gap-6 lg:grid-cols-3">
+        <div class="p-4 bg-white rounded-xl shadow">
+          <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">Avg Cards / Session</h3>
+          <div class="text-3xl font-bold text-[var(--text-primary)]">${avgSessionCards}</div>
+        </div>
+        <div class="p-4 bg-white rounded-xl shadow">
+          <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">Time Spent (min)</h3>
+          <div class="text-3xl font-bold text-[var(--text-primary)]">${Math.round(timeSpent/60)}</div>
+        </div>
+        <div class="p-4 bg-white rounded-xl shadow">
+          <h3 class="text-sm font-semibold text-[var(--text-primary)] mb-3">Avg Session Time (s)</h3>
+          <div class="text-3xl font-bold text-[var(--text-primary)]">${avgSessionTime}</div>
+        </div>
+      </div>
+    </div>`;
+  // Charts
+  // Line chart (aggregate per day -> cardsSeen sum)
+  // Build per-subject daily aggregation for multi-line chart
+  const subjDayMap={};
+  const allDaysSet=new Set();
+  sessions.forEach(s=>{
+    const subj=s.subject||'Other';
+    const day=dayKeyLocal(s.date);
+    allDaysSet.add(day);
+    if(!subjDayMap[subj]) subjDayMap[subj]={};
+    subjDayMap[subj][day]=(subjDayMap[subj][day]||0)+(s.cardsSeen||0);
+  });
+  const lineLabels=[...allDaysSet].sort();
+  const datasets=Object.keys(subjDayMap).sort().map(subj=>{
+    const color=SUBJECT_COLORS[subj]||'#555';
+    return { label:subj, data:lineLabels.map(d=>subjDayMap[subj][d]||0), borderColor:color, backgroundColor:color, tension:.25, fill:false }; });
+  const ctxL=document.getElementById('fcLine'); if(ctxL){ __fcCharts.push(new Chart(ctxL,{ type:'line', data:{ labels:lineLabels, datasets }, options:{ responsive:true, interaction:{ mode:'nearest', intersect:false }, plugins:{ legend:{ position:'bottom' }}, scales:{ y:{ beginAtZero:true } } } })); }
+  // Donut sessions by subject
+  const subjLabels=Object.keys(subjectAgg); const subjSessions=subjLabels.map(s=>subjectAgg[s].sessions||0); const subjColors=subjLabels.map(s=>SUBJECT_COLORS[s]||'#999');
+  const ctxD=document.getElementById('fcDonut'); if(ctxD){ __fcCharts.push(new Chart(ctxD,{ type:'doughnut', data:{ labels:subjLabels, datasets:[{ data:subjSessions, backgroundColor:subjColors }]}, options:{ plugins:{ legend:{ position:'bottom' }}} })); }
+}
+window.renderFlashcardDashboard=renderFlashcardDashboard;
+</script>
+<script src="card-runner.js"></script>
+
+<!-- Inline builder templates (avoids fetch, works on file:// protocol) -->
+<template data-file="card-builder.html">
+<style>
+  .cardbuilder-scope input[type="text"],
+  .cardbuilder-scope textarea,
+  .cardbuilder-scope select { color: var(--text-primary) !important; background: var(--white) !important; }
+  [data-theme="dark"] .cardbuilder-scope input[type="text"],
+  [data-theme="dark"] .cardbuilder-scope textarea,
+  [data-theme="dark"] .cardbuilder-scope select { color:#ffffff !important; background:#1f2937 !important; border-color:#334155 !important; }
+  #fcSubject option { color: var(--text-primary); }
+  [data-theme="dark"] #fcSubject option { color:#fff !important; background:#1f2937; }
+  #fcName::placeholder, #fcDesc::placeholder { color: var(--text-secondary) !important; opacity:0.7; }
+  [data-theme="dark"] #fcName::placeholder, [data-theme="dark"] #fcDesc::placeholder { color:#94a3b8 !important; opacity:0.6; }
+  .cardbuilder-scope .btn { transition:opacity .2s ease; }
+  .cardbuilder-scope .btn:hover { opacity:.9; }
+  .cardbuilder-scope .btn-primary { background:var(--primary-color); color:#fff; }
+  .cardbuilder-scope .btn-secondary { background:#e5e7eb; color:var(--text-primary); }
+</style>
+<div class="cardbuilder-scope">
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h3 class="text-xl font-semibold text-[var(--text-primary)] mb-4">Flashcard Set Details</h3>
+    <div class="grid md:grid-cols-4 gap-4 text-sm text-[var(--text-secondary)]">
+      <div>
+        <label class="block font-medium text-[var(--text-primary)] mb-1">Subject</label>
+        <div class="flex gap-2">
+        <select id="fcSubject" class="w-full rounded-md border-gray-300">
+          <option value="" disabled selected>Select a Subject</option>
+          <option value="__create">Create New…</option>
+        </select>
+        <div class="flex flex-col gap-1">
+          <button type="button" id="btnManageSubjectsFC" class="px-2 py-1 text-[10px] rounded border border-[var(--border-color)] hover:bg-gray-100">Manage</button>
+          <button type="button" id="btnRemoveSubjectFC" class="px-2 py-1 text-[10px] rounded border border-red-300 text-red-600 hover:bg-red-50 hidden">Remove</button>
+        </div>
+        </div>
+      </div>
+      <div>
+        <label class="block font-medium text-[var(--text-primary)] mb-1">Subject Component</label>
+        <input id="fcName" type="text" class="w-full rounded-md border-gray-300" placeholder="e.g. Biology Terms 101" />
+      </div>
+      <div>
+        <label class="block font-medium text-[var(--text-primary)] mb-1">Description</label>
+        <input id="fcDesc" type="text" class="w-full rounded-md border-gray-300" placeholder="Short description..." />
+      </div>
+      <div class="flex items-end justify-end">
+        <button id="btnSaveSet" class="btn btn-primary px-4 py-2 rounded-md">Save Set</button>
+      </div>
+    </div>
+  </div>
+  <div class="grid lg:grid-cols-3 gap-6">
+    <div class="bg-white rounded-lg shadow p-4 flex flex-col h-[600px]">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-semibold text-[var(--text-primary)]">Cards</h3>
+        <div class="flex gap-2">
+          <button id="btnAddCard" class="px-3 py-1.5 text-xs rounded-md bg-[var(--primary-color)] text-white shadow">+ Card</button>
+          <button id="btnBulkAdd" class="px-3 py-1.5 text-xs rounded-md bg-gray-200 text-[var(--text-primary)] hover:bg-gray-300">Bulk</button>
+        </div>
+      </div>
+      <div id="cardsList" class="flex-1 overflow-y-auto space-y-2 p-2 border rounded-md bg-gray-50 text-sm">
+        <div class="text-[var(--text-secondary)] italic">No cards yet. Use "+ Card".</div>
+      </div>
+    </div>
+    <div class="lg:col-span-2 bg-white rounded-lg shadow p-6 flex flex-col h-[600px]">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold text-[var(--text-primary)]">Card Editor</h3>
+        <div class="flex gap-2">
+          <button id="btnMoveUp" class="px-2 py-1 text-xs rounded border border-[var(--border-color)] disabled:opacity-40">↑</button>
+          <button id="btnMoveDown" class="px-2 py-1 text-xs rounded border border-[var(--border-color)] disabled:opacity-40">↓</button>
+          <button id="btnDeleteCard" class="px-2 py-1 text-xs rounded border border-red-300 text-red-600 disabled:opacity-40">Delete</button>
+        </div>
+      </div>
+      <div id="activeCard" class="flex-1 overflow-y-auto pr-2 space-y-4 text-sm">
+        <div class="text-[var(--text-secondary)] italic">No active card. Add one to begin editing.</div>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <button id="btnSaveCard" class="btn px-4 py-2 rounded-md bg-green-600 text-white">Save Card</button>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+
+<template data-file="card-runner.html">
+<div id="cardRunner" class="fc-study-wrapper space-y-4">
+  <div id="fcMeta" class="flex items-center justify-between text-[var(--text-secondary)] text-xs tracking-wide uppercase"></div>
+  <div id="fcProgress" class="fc-progress"></div>
+  <div class="relative">
+    <div id="fcStage" class="fc-card-stage"></div>
+    <div id="fcHintPop" class="fc-hint-pop" style="display:none;"></div>
+  </div>
+  <div id="fcConfidence" class="fc-confidence" style="display:none;">
+    <button id="btnKnow" class="fc-conf-btn know">Know It <span class="fc-kbd">1</span></button>
+    <button id="btnKinda" class="fc-conf-btn kinda">Kinda <span class="fc-kbd">2</span></button>
+    <button id="btnNoclue" class="fc-conf-btn noclue">No Clue <span class="fc-kbd">3</span></button>
+  </div>
+  <div class="flex items-center justify-center gap-4">
+    <button id="btnPrevCard" class="px-4 py-2 rounded-md bg-gray-200 text-[var(--text-primary)] disabled:opacity-40">Previous</button>
+    <button id="btnHint" class="px-4 py-2 rounded-md bg-amber-500 text-white">Hint</button>
+    <button id="btnNextCard" class="px-4 py-2 rounded-md bg-[var(--primary-color)] text-white">Next</button>
+    <button id="btnFinishSession" class="px-4 py-2 rounded-md bg-emerald-600 text-white hidden">Finish</button>
+  </div>
+  <div class="flex justify-center"><button id="btnReturnSet" class="text-xs text-[var(--text-secondary)] underline">Return to Set</button></div>
+  <p class="text-center text-[var(--text-secondary)] text-xs">
+    <span class="fc-kbd">Space</span> flip &middot;
+    <span class="fc-kbd">&larr;</span><span class="fc-kbd">&rarr;</span> navigate &middot;
+    <span class="fc-kbd">1</span><span class="fc-kbd">2</span><span class="fc-kbd">3</span> rate &middot;
+    <span class="fc-kbd">S</span> star &middot;
+    <span class="fc-kbd">H</span> hint
+  </p>
+</div>
+</template>
+<script src="tools-drawer.js"></script>
+</body>
+</html>

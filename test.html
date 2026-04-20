@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FocusPath — Tests (Shell)</title>
+<link rel="stylesheet" href="vendor/fonts/lexend.css"/>
+<link rel="stylesheet" href="vendor/fonts/gaegu.css"/>
+<script src="vendor/tailwind.js"></script>
+<script src="vendor/chart.umd.min.js"></script>
+<script src="themes.js"></script>
+<script src="achievements.js"></script>
+<script src="test-builder.js"></script>
+<script src="test-runner.js"></script>
+<style type="text/tailwindcss">
+  :root{--primary-color:#0d78f2;--background-color:#f0f2f5;--text-primary:#111418;--text-secondary:#60748a;--white:#ffffff;--border-color:#e5e7eb}
+  body{font-family:'Lexend',sans-serif}
+  .hover-bg-primary-light:hover{background-color:#e6f2ff}
+  .question-thumb{width:40px;height:28px;object-fit:cover;border-radius:6px}
+  .questions-drawer { min-width:240px; max-width:320px; width: 100%; }
+  .questions-drawer .list { max-height: calc(70vh); overflow:auto; }
+  .review-list { max-height: calc(70vh); overflow:auto; padding:6px; }
+  .review-item { cursor:pointer; padding:8px; border-radius:6px; display:flex; gap:8px; align-items:center; }
+  .review-item:hover { background: #f2f8ff; }
+  .confetti-canvas { position:fixed; inset:0; pointer-events:none; z-index:1200; }
+  /* Tests list item states */
+  .test-item { border: 1px solid var(--border-color); border-radius: 0.5rem; transition: background-color .2s ease, border-color .2s ease; }
+  .test-item:hover { background: var(--surface-hover); }
+  .test-item.selected { background: rgba(13,120,242,0.10); border-color: var(--primary-color); }
+  /* (Soft Reset button removed; logic now in stats page) */
+</style>
+</head>
+<body class="bg-[var(--background-color)]">
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="w-64 hidden md:flex flex-col gap-4 p-4">
+    <div class="fp-section-card p-4 flex items-center gap-3">
+      <div class="w-8 h-8 text-[var(--primary-color)]">
+        <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"/></svg>
+      </div>
+      <h1 class="text-[var(--text-primary)] text-2xl font-bold">FocusPath</h1>
+    </div>
+
+    <div class="flex flex-col gap-3">
+  <button id="btnTestHome" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-8.5z"/></svg>
+        <span>Test Home</span>
+      </button>
+  <button id="btnNewTest" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11 11V6h2v5h5v2h-5v5h-2v-5H6v-2h5z"/></svg>
+        <span>New Test</span>
+      </button>
+  <button id="btnImportTest" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3v10m0 0 4-4m-4 4-4-4M20 18v2H4v-2"/></svg>
+        <span>Import Tests</span>
+      </button>
+  <button id="btnExportTest" class="fp-bubble w-full flex items-center gap-3 px-4 py-3 font-medium transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21V9m0 0 4 4m-4-4-4 4M4 18v2h16v-2"/></svg>
+        <span>Export Tests</span>
+      </button>
+    </div>
+
+    <div class="fp-section-card p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h4 class="text-[var(--text-secondary)] text-xs font-semibold uppercase">Tests</h4>
+        <button id="btnTrashAll" class="text-red-500 hover:text-red-700 text-xs font-medium flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V4h6v3m2 0v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V7z"/>
+          </svg>
+          Trash All
+        </button>
+      </div>
+      <div id="testList" class="flex flex-col gap-2 max-h-[55vh] overflow-auto"></div>
+    </div>
+
+    <div class="mt-auto pt-2"></div>
+  </aside>
+
+  <!-- Main column -->
+  <div class="flex-1 flex flex-col">
+    <script src="icons.js"></script>
+    <!-- Top nav -->
+  <div class="px-4 pt-4 flex items-center justify-center">
+      <nav class="flex gap-3">
+        <a href="home.html" title="Home" aria-label="Home" class="fp-bubble-circle"><svg class="fp-icon" aria-hidden="true"><use href="#ico-home"/></svg></a>
+        <a href="flashcards.html" title="Flashcards" aria-label="Flashcards" class="fp-bubble-circle"><svg class="fp-icon" aria-hidden="true"><use href="#ico-flashcards"/></svg></a>
+        <a href="stats.html" title="Statistics" aria-label="Statistics" class="fp-bubble-circle"><svg class="fp-icon" aria-hidden="true"><use href="#ico-stats"/></svg></a>
+      </nav>
+      <!-- Removed trailing profile bubble -->
+    </div>
+
+    <main class="flex-1 p-6 lg:p-8">
+      <h2 id="pageTitle" class="text-[var(--text-primary)] text-3xl font-bold mb-6">Tests</h2>
+
+      <div id="centerGrid" class="grid grid-cols-1 gap-8">
+        <div id="testContent" class="rounded-lg p-0">
+          <!-- Dynamic test dashboard / builder / runner content injected here -->
+        </div>
+        <div id="secondaryArea" class="bg-white rounded-lg shadow p-6 hidden">
+          <h3 class="text-xl font-semibold mb-4 text-[var(--text-primary)]">Test Info</h3>
+          <div class="grid sm:grid-cols-2 gap-3 text-[var(--text-secondary)] text-sm">
+            <div><div class="font-medium text-[var(--text-primary)]">Test Subject</div><div id="infoSubject" class="mt-0.5">—</div></div>
+            <div><div class="font-medium text-[var(--text-primary)]">Test Name</div><div id="infoName" class="mt-0.5">—</div></div>
+            <div><div class="font-medium text-[var(--text-primary)]">Number of Questions</div><div id="infoCount" class="mt-0.5">—</div></div>
+            <div><div class="font-medium text-[var(--text-primary)]">Date Created</div><div id="infoCreated" class="mt-0.5">—</div></div>
+            <div><div class="font-medium text-[var(--text-primary)]">Times Taken</div><div id="infoTimes" class="mt-0.5">—</div></div>
+            <div class="sm:col-span-2"><div class="font-medium text-[var(--text-primary)]">Amount of Time Taken</div><div id="infoTimeSpent" class="mt-0.5">—</div></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<canvas id="confettiCanvas" class="confetti-canvas" width="1" height="1" style="display:none;"></canvas>
+
+<!-- Hidden file inputs -->
+<input id="uploadImageInput" type="file" accept="image/*" class="hidden" />
+<input id="importFileInputHidden" type="file" accept="application/json" class="hidden" />
+
+<script>
+// Theme drawer toggle
+(function(){
+  const themeBtn = document.getElementById('themeToggle');
+  if (themeBtn) {
+    themeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if(window.ThemeManager && window.ThemeManager.openPicker) window.ThemeManager.openPicker();
+    });
+  }
+})();
+(() => {
+  // ---- Soft Reset (Tests) ----
+  // We mask old tests/attempts locally after a soft reset using a timestamp; stats page still sees original data keys.
+  function softResetActive(){ return localStorage.getItem('fpSoftResetTests')==='1'; }
+  function softResetTimestamp(){ const v=parseInt(localStorage.getItem('fpSoftResetTestsTs')||'0',10); return isNaN(v)?0:v; }
+  function testIdToTs(id){ const m=/^test_(\d+)/.exec(id||''); return m? parseInt(m[1],10):0; }
+  // Capture original loaders
+  const __origLoadTests = window.loadTests || function(){ try { return JSON.parse(localStorage.getItem('tests')||'[]'); } catch { return []; } };
+  const __origLoadAttempts = function(){ try { return JSON.parse(localStorage.getItem('testAttempts')||'[]'); } catch { return []; } };
+  window.loadTests = function(){ const arr=__origLoadTests(); if(!softResetActive()) return arr; const ts=softResetTimestamp(); return arr.filter(t=> testIdToTs(t.id)>=ts); };
+  window.loadAttempts = function(){ const arr=__origLoadAttempts(); if(!softResetActive()) return arr; const ts=softResetTimestamp(); return arr.filter(a=>{ const time=new Date(a.date).getTime(); return time>=ts; }); };
+  // (Soft reset trigger moved to stats page; masking logic below remains active when flags set)
+  // Ensure button visible whenever dashboard renders
+  // Dashboard helpers and renderer
+  function loadAttempts() {
+    try { return JSON.parse(localStorage.getItem("testAttempts") || "[]"); } catch { return []; }
+  }
+
+  function fmtSecondsToHMS(sec) {
+    if (!sec || sec <= 0) return "0s";
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = Math.floor(sec % 60);
+    return [h>0?`${h}h`:null, m>0?`${m}m`:null, `${s}s`].filter(Boolean).join(" ");
+  }
+
+  function dayKeyLocal(d) {
+    const dt = new Date(d);
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  }
+
+  function uniqueDates(arr) {
+    const set = new Set(arr.map(d => dayKeyLocal(d)));
+    return set.size;
+  }
+
+  let __charts = [];
+  function destroyCharts() { try { __charts.forEach(c => c && c.destroy && c.destroy()); } catch {} __charts = []; }
+
+  window.renderDashboard = function renderDashboard() {
+    const primary = document.getElementById("testContent");
+    if (!primary) return;
+    if (window.__fpBuilderActive) return;
+
+  const tests = loadTests();
+  const attempts = loadAttempts();
+  const testById = new Map(tests.map(t => [String(t.id), t]));
+
+    const testsCreated = tests.length;
+    const testsTaken = attempts.length;
+    const daysStudied = attempts.length ? uniqueDates(attempts.map(a => a.date)) : 0;
+    const avgTime = attempts.length ? Math.round(attempts.reduce((s,a)=>s+(a.timeTaken||0),0)/attempts.length) : 0;
+    const avgScorePct = attempts.length ? (attempts.reduce((s,a)=>s + (a.total? (a.score/a.total)*100 : 0),0)/attempts.length) : 0;
+
+    // Prepare datasets
+    // Subject color mapping
+    const SUBJECT_COLORS = {
+      '(No Subject)': '#94a3b8'
+    };
+
+    // Merge in user-defined custom subject colors and persist any new subjects so color remains stable across tools
+    try {
+      const userMap = JSON.parse(localStorage.getItem('fpSubjectColors')||'{}');
+      Object.assign(SUBJECT_COLORS, userMap);
+      // Collect all subjects referenced by tests to ensure they have a stable color
+      const allSubjects = new Set();
+      tests.forEach(t=>{ if(t.subject) allSubjects.add(t.subject); });
+      attempts.forEach(a=>{ const t=testById.get(String(a.testId)); const subj=(t && t.subject)||'(No Subject)'; allSubjects.add(subj); });
+      const palette = ['#ef4444','#f59e0b','#0d78f2','#22c55e','#8b5cf6','#14b8a6','#6366f1','#ec4899','#10b981','#eab308','#0ea5e9','#fb923c','#84cc16','#f472b6','#38bdf8','#a855f7','#dc2626','#2563eb','#9333ea','#047857','#ea580c'];
+      const used = new Set(Object.values(SUBJECT_COLORS).map(c=>c.toLowerCase()));
+      let mutated = false;
+      allSubjects.forEach(subj=>{
+        if(!SUBJECT_COLORS[subj]){
+          // Assign next available palette color, else random unique
+            let pick=null; for(const col of palette){ if(!used.has(col.toLowerCase())){ pick=col; break; } }
+            let guard=0; while(!pick && guard<50){ const cand='#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'); if(!used.has(cand.toLowerCase())) pick=cand; guard++; }
+            if(!pick) pick='#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0');
+            SUBJECT_COLORS[subj]=pick; used.add(pick.toLowerCase()); userMap[subj]=pick; mutated=true;
+        }
+      });
+      if(mutated){ localStorage.setItem('fpSubjectColors', JSON.stringify(userMap)); }
+    } catch {}
+
+    // 1) Scores over time (by local day, average per day, last 14 days) per subject
+    const byDayBySubject = new Map(); // day -> subj -> [pct]
+    attempts.forEach(a => {
+      const t = testById.get(String(a.testId));
+      const subj = (t && t.subject) || '(No Subject)';
+      const day = dayKeyLocal(a.date);
+      const pct = a.total ? (a.score / a.total) * 100 : 0;
+      if (!byDayBySubject.has(day)) byDayBySubject.set(day, new Map());
+      const submap = byDayBySubject.get(day);
+      if (!submap.has(subj)) submap.set(subj, []);
+      submap.get(subj).push(pct);
+    });
+    const start = new Date(); start.setHours(0,0,0,0);
+    const last14 = Array.from({length:14}).map((_,i)=>{
+      const d = new Date(start); d.setDate(d.getDate() - (13 - i));
+      return dayKeyLocal(d);
+    });
+    const lineLabels = last14;
+    const subjectsSeen = new Set();
+    byDayBySubject.forEach(m => m.forEach((_, subj) => subjectsSeen.add(subj)));
+    const subjectList = Array.from(subjectsSeen);
+    const lineDatasets = subjectList.map(subj => ({
+      label: subj,
+      data: last14.map(d => {
+        const submap = byDayBySubject.get(d);
+        if (!submap) return null;
+        const arr = submap.get(subj) || [];
+        if (!arr.length) return null; // gap
+        return arr.reduce((s,v)=>s+v,0)/arr.length;
+      }),
+      spanGaps: true,
+      borderColor: SUBJECT_COLORS[subj] || '#6366f1',
+      backgroundColor: (SUBJECT_COLORS[subj] || '#6366f1') + '26',
+      tension: 0.35,
+      fill: false,
+      pointRadius: 2
+    }));
+
+  // 2) Average score by subject
+  const subjScores = new Map(); // subject -> {sumPct, count}
+    attempts.forEach(a => {
+      const t = testById.get(String(a.testId));
+      const subj = (t && t.subject) || "(No Subject)";
+      const pct = a.total ? (a.score / a.total) * 100 : 0;
+      if (!subjScores.has(subj)) subjScores.set(subj, {sum:0,count:0});
+      subjScores.get(subj).sum += pct; subjScores.get(subj).count += 1;
+    });
+  const subjLabels = Array.from(subjScores.keys());
+  const subjData = subjLabels.map(s => subjScores.get(s).sum / subjScores.get(s).count);
+  const subjColors = subjLabels.map(s => SUBJECT_COLORS[s] || '#6366f1');
+
+  // 3) Average time per attempt (last 10 attempts) with per-test colors
+  const lastAttempts = attempts.slice(-10);
+    const timeLabels = lastAttempts.map(a => new Date(a.date).toLocaleDateString());
+    const timeData = lastAttempts.map(a => a.timeTaken || 0);
+    const timeColors = lastAttempts.map(a => {
+      const t = testById.get(String(a.testId));
+      const subj = (t && t.subject) || '(No Subject)';
+      return SUBJECT_COLORS[subj] || '#6366f1';
+    });
+
+    // Render HTML scaffold
+    primary.innerHTML = `
+      <div class="space-y-6">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div class="bg-white rounded-xl shadow p-4">
+            <div class="text-xs text-[var(--text-secondary)]">Days Studied</div>
+            <div class="mt-1 text-2xl font-semibold text-[var(--text-primary)]">${daysStudied}</div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-4">
+            <div class="text-xs text-[var(--text-secondary)]">Tests Created</div>
+            <div class="mt-1 text-2xl font-semibold text-[var(--text-primary)]">${testsCreated}</div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-4">
+            <div class="text-xs text-[var(--text-secondary)]">Tests Taken</div>
+            <div class="mt-1 text-2xl font-semibold text-[var(--text-primary)]">${testsTaken}</div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-4">
+            <div class="text-xs text-[var(--text-secondary)]">Avg Time</div>
+            <div class="mt-1 text-2xl font-semibold text-[var(--text-primary)]">${fmtSecondsToHMS(avgTime)}</div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-4">
+            <div class="text-xs text-[var(--text-secondary)]">Avg Score</div>
+            <div class="mt-1 text-2xl font-semibold text-[var(--text-primary)]">${avgScorePct.toFixed(0)}%</div>
+          </div>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6">
+          <div class="bg-white rounded-xl shadow p-4 lg:col-span-2">
+            <div class="flex items-center justify-between mb-2">
+              <div class="font-semibold text-[var(--text-primary)]">Scores Over Time (last 14 days)</div>
+              <div class="text-xs text-[var(--text-secondary)]">Daily average</div>
+            </div>
+            <div class="h-56"><canvas id="scoresChart"></canvas></div>
+          </div>
+          <div class="bg-white rounded-xl shadow p-4">
+            <div class="font-semibold text-[var(--text-primary)] mb-2">Avg Score by Subject</div>
+            <div class="h-56"><canvas id="subjectsChart"></canvas></div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow p-4">
+          <div class="font-semibold text-[var(--text-primary)] mb-2">Time per Attempt (last 10)</div>
+          <div class="h-56"><canvas id="timeChart"></canvas></div>
+        </div>
+      </div>
+    `;
+
+    // Render charts
+    destroyCharts();
+    const scoresCtx = document.getElementById('scoresChart')?.getContext('2d');
+    const subjectsCtx = document.getElementById('subjectsChart')?.getContext('2d');
+    const timeCtx = document.getElementById('timeChart')?.getContext('2d');
+
+  if (scoresCtx) {
+      __charts.push(new Chart(scoresCtx, {
+        type: 'line',
+        data: {
+          labels: lineLabels.map(d => {
+            const [y,m,dd] = d.split('-').map(Number);
+            return new Date(y, m-1, dd).toLocaleDateString();
+          }),
+      datasets: lineDatasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: { y: { suggestedMin: 0, suggestedMax: 100, ticks: { callback: v => v + '%' } } },
+      plugins: { legend: { display: true, position: 'bottom' }, tooltip: { callbacks: { label: (ctx)=> `${ctx.dataset.label}: ${(ctx.parsed.y ?? 0).toFixed(1)}%` } } }
+        }
+      }));
+    }
+
+  if (subjectsCtx) {
+      __charts.push(new Chart(subjectsCtx, {
+        type: 'doughnut',
+        data: {
+          labels: subjLabels,
+          datasets: [{
+            label: 'Avg %',
+      data: subjData.map(v => Number.isFinite(v)? Number(v.toFixed(1)) : 0),
+      backgroundColor: subjColors,
+      borderColor: subjColors,
+      borderWidth: 1
+          }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, cutout: '60%'}
+      }));
+    }
+
+  if (timeCtx) {
+      __charts.push(new Chart(timeCtx, {
+        type: 'bar',
+        data: {
+          labels: timeLabels,
+          datasets: [{
+            label: 'Seconds',
+            data: timeData,
+            backgroundColor: timeColors,
+            borderColor: timeColors,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  const a = lastAttempts[ctx.dataIndex];
+                  const t = testById.get(String(a.testId));
+                  const name = (t && t.name) || a.testName || 'Attempt';
+                  return `${name}: ${fmtSecondsToHMS(ctx.parsed.y || 0)}`;
+                }
+              }
+            }
+          },
+          scales: { y: { beginAtZero: true } }
+        }
+      }));
+    }
+  if(window.FPAchievementNotifySafe){ try { window.FPAchievementNotifySafe(); } catch {} }
+  };
+
+  // Import/Export wiring
+  const btnImportTest = document.getElementById("btnImportTest");
+  const btnExportTest = document.getElementById("btnExportTest");
+  const hiddenImport = document.getElementById("importFileInputHidden");
+
+  function generateId() {
+    return "test_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+  }
+
+  function normalizeQuestion(q) {
+    const type = (q && q.type) || "multiple";
+    const base = { text: (q && q.text) || "", type, image: q && q.image ? q.image : null };
+    if (type === "multiple") {
+      const options = Array.isArray(q && q.options) ? q.options.map(String) : ["", "", "", ""];
+      const answer = options.includes(q && q.answer) ? q.answer : null;
+      return { ...base, options, answer };
+    }
+    if (type === "truefalse") {
+      const answer = (q && q.answer) === "False" ? "False" : "True";
+      return { ...base, options: ["True", "False"], answer };
+    }
+    const answers = Array.isArray(q && q.answers) ? q.answers.map(String) : [""];
+    return { ...base, answers };
+  }
+
+  function normalizeTest(t) {
+    return {
+      id: (t && t.id) || generateId(),
+      subject: (t && t.subject) || "",
+      name: (t && t.name) || "Untitled Test",
+      desc: (t && t.desc) || "",
+      image: (t && t.image) || null,
+  questions: Array.isArray(t && t.questions) ? t.questions.map(normalizeQuestion) : [],
+  locked: !!(t && t.locked),
+    };
+  }
+
+  function downloadJSON(filename, data) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 0);
+  }
+
+  // ---- Crypto helpers (AES-GCM + PBKDF2) ----
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+  function toB64(buf) {
+    const bytes = new Uint8Array(buf);
+    let bin = "";
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function fromB64(b64) {
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+  function randomBytes(len) {
+    const a = new Uint8Array(len);
+    crypto.getRandomValues(a);
+    return a;
+  }
+  async function deriveKey(password, salt) {
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']
+    );
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: 250000, hash: 'SHA-256' },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
+  async function encryptObject(obj, password) {
+    const iv = randomBytes(12);
+    const salt = randomBytes(16);
+    const key = await deriveKey(password, salt);
+    const plaintext = enc.encode(JSON.stringify(obj));
+    const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plaintext);
+    return {
+      _fp: 'FocusPathTest',
+      encrypted: true,
+      algo: 'AES-GCM',
+      kdf: 'PBKDF2-SHA256',
+      iter: 250000,
+      iv: toB64(iv),
+      salt: toB64(salt),
+      ciphertext: toB64(ciphertext),
+      meta: { name: obj.name || 'Untitled Test', subject: obj.subject || '' }
+    };
+  }
+  async function decryptObject(pkg, password) {
+    const iv = new Uint8Array(fromB64(pkg.iv));
+    const salt = new Uint8Array(fromB64(pkg.salt));
+    const key = await deriveKey(password, salt);
+    const data = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, fromB64(pkg.ciphertext));
+    return JSON.parse(dec.decode(new Uint8Array(data)));
+  }
+
+  // Import handler
+  if (btnImportTest && hiddenImport) {
+    btnImportTest.addEventListener("click", () => {
+      hiddenImport.value = "";
+      hiddenImport.click();
+    });
+
+    hiddenImport.addEventListener("change", async (e) => {
+      try {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        const data = JSON.parse(text);
+        // Cross-format validation: reject flashcard files
+        if (data && data._fp === 'FocusPathFlash') { alert('This is a flashcard export file. Please import it on the Flashcards page.'); return; }
+        let incoming = [];
+        if (Array.isArray(data)) incoming = data;
+        else if (data && Array.isArray(data.tests)) incoming = data.tests;
+        else if (data && data.encrypted && data.ciphertext) incoming = [data];
+        else if (data && typeof data === "object" && (data.questions || data.name || data._fp === 'FocusPathTest')) incoming = [data];
+        else if (data && typeof data === "object") incoming = [data];
+        if (!incoming.length) {
+          alert("No tests found in file.");
+          return;
+        }
+        let tests = loadTests();
+        const existingIds = new Set(tests.map(t => t.id));
+        let importedCount = 0;
+        let lastPassword = null;
+        for (const raw of incoming) {
+          if (raw && raw.encrypted && raw.ciphertext && raw.iv && raw.salt) {
+            // Reject wrong format
+            if (raw._fp === 'FocusPathFlash') { alert('This is an encrypted flashcard file. Please import it on the Flashcards page.'); continue; }
+            // Encrypted package: prompt for password (reuse last if provided)
+            const pwd = lastPassword != null ? lastPassword : prompt(`Password required to import: ${raw.meta?.name || 'Protected Test'}`);
+            if (pwd == null || pwd === "") { continue; }
+            try {
+              const decrypted = await decryptObject(raw, pwd);
+              // Decrypted may be a single test, or a {_fp, tests:[...]} wrapper
+              let decryptedTests = [];
+              if (decrypted && Array.isArray(decrypted.tests)) { decryptedTests = decrypted.tests; }
+              else if (Array.isArray(decrypted)) { decryptedTests = decrypted; }
+              else if (decrypted && typeof decrypted === 'object') { decryptedTests = [decrypted]; }
+              for (const dt of decryptedTests) {
+                // Mark as locked to disable editing for students
+                dt.locked = true;
+                const t = normalizeTest(dt);
+                if (existingIds.has(t.id)) t.id = generateId();
+                existingIds.add(t.id);
+                tests.push(t);
+                importedCount++;
+              }
+              lastPassword = pwd;
+            } catch (err) {
+              console.error('Decrypt failed:', err);
+              alert('Incorrect password or corrupted file for one protected test. It was skipped.');
+            }
+          } else {
+            const t = normalizeTest(raw);
+            if (existingIds.has(t.id)) t.id = generateId();
+            existingIds.add(t.id);
+            tests.push(t);
+            importedCount++;
+          }
+        }
+        saveTests(tests);
+        renderTestList();
+  if (typeof renderDashboard === 'function') renderDashboard();
+        alert(`Imported ${importedCount} test${importedCount !== 1 ? 's' : ''}.`);
+      } catch (err) {
+        console.error("Import error:", err);
+        alert("Failed to import. Ensure the file is valid JSON.");
+      }
+    });
+  }
+
+  // Export handler (selected test or all tests)
+  if (btnExportTest) {
+    btnExportTest.addEventListener("click", async () => {
+      const selectedId = window.__selectedTestId;
+      const tests = loadTests();
+      if (!tests.length) { alert('No tests to export.'); return; }
+      let exportData, defaultName;
+      if (selectedId) {
+        const test = tests.find(t => String(t.id) === String(selectedId));
+        if (!test) { alert('Could not find the selected test.'); return; }
+        const mode = tests.length > 1 ? confirm('Export only the selected test?\n\nOK = Export selected test\nCancel = Export ALL tests') : true;
+        if (mode) {
+          exportData = { ...test, _fp: 'FocusPathTest' };
+          defaultName = (test.name || 'focuspath-test').substring(0, 60);
+        } else {
+          exportData = { _fp: 'FocusPathTest', tests };
+          defaultName = 'all-tests';
+        }
+      } else {
+        exportData = { _fp: 'FocusPathTest', tests };
+        defaultName = 'all-tests';
+      }
+      let custom = prompt('Enter a filename (without extension) for this export:', defaultName);
+      if (custom === null) return;
+      custom = custom.trim();
+      const baseRaw = custom || defaultName;
+      const base = baseRaw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+      const wantPassword = confirm('Would you like to password-protect this export?');
+      if (wantPassword) {
+        const pwd = prompt('Enter a password:');
+        if (pwd && pwd.length > 0) {
+          try {
+            const pkg = await encryptObject(exportData, pwd);
+            downloadJSON(`${base || 'focuspath-test'}-protected.json`, pkg);
+          } catch (err) {
+            console.error('Encrypt error:', err);
+            alert('Failed to encrypt. Exporting without protection.');
+            downloadJSON(`${base || 'focuspath-test'}.json`, exportData);
+          }
+          return;
+        }
+      }
+      downloadJSON(`${base || 'focuspath-test'}.json`, exportData);
+    });
+  }
+})();
+
+function loadTests() {
+  try {
+    return JSON.parse(localStorage.getItem("tests") || "[]");
+  } catch (e) {
+    console.error("Error parsing tests:", e);
+    return [];
+  }
+}
+
+function saveTests(tests) {
+  localStorage.setItem("tests", JSON.stringify(tests));
+}
+
+function deleteTest(testId) {
+  let tests = loadTests();
+  tests = tests.filter(t => t.id !== testId);
+  saveTests(tests);
+  renderTestList();
+  if (typeof renderDashboard === 'function') renderDashboard();
+  // clear selection and disable export if needed
+  if (String(window.__selectedTestId) === String(testId)) {
+    window.__selectedTestId = null;
+    const btnExportTest = document.getElementById('btnExportTest');
+    if (btnExportTest) btnExportTest.disabled = true;
+  }
+}
+
+function deleteAllTests() {
+  if (confirm("Delete ALL tests? This cannot be undone.")) {
+    saveTests([]);
+    renderTestList();
+  window.__selectedTestId = null;
+  const btnExportTest = document.getElementById('btnExportTest');
+  if (btnExportTest) btnExportTest.disabled = true;
+  if (typeof renderDashboard === 'function') renderDashboard();
+  }
+}
+
+function renderTestList() {
+  const testListEl = document.getElementById("testList");
+  const tests = loadTests();
+
+  testListEl.innerHTML = "";
+
+  if (tests.length === 0) {
+    testListEl.innerHTML = `<div class="text-sm text-gray-400">No saved tests yet.</div>`;
+    return;
+  }
+
+  tests.forEach((test) => {
+  const li = document.createElement("div");
+  li.className = "p-3 bg-white shadow-sm flex items-center justify-between test-item";
+  li.dataset.id = test.id;
+
+    li.innerHTML = `
+      <div class="flex flex-col cursor-pointer flex-1">
+        <span class="font-medium text-[var(--text-primary)]">${test.name || "Untitled Test"}</span>
+        <span class="text-xs text-[var(--text-secondary)]">${test.subject || ""}</span>
+      </div>
+      <button class="ml-2 text-red-500 hover:text-red-700" title="Delete Test">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 7h12M9 7V4h6v3m2 0v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V7z"/>
+        </svg>
+      </button>
+    `;
+
+    // Click area (excluding delete button)
+    li.querySelector("div").addEventListener("click", () => {
+      // Persist selection and reflect highlight
+      window.__selectedTestId = test.id;
+      document.querySelectorAll('#testList .test-item').forEach(n => n.classList.toggle('selected', n.dataset.id === String(test.id)));
+  const btnExportTest = document.getElementById('btnExportTest');
+  if (btnExportTest) btnExportTest.disabled = false;
+  const primary = document.getElementById("testContent");
+      primary.innerHTML = `
+        <div class="flex justify-center items-center w-full h-full p-6">
+          <div class="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center space-y-6">
+            <h2 class="text-xl font-semibold text-[var(--text-primary)]">${test.name}</h2>
+            <p class="text-sm text-[var(--text-secondary)]">${test.desc || ""}</p>
+
+            <div class="space-y-3">
+              <button id="btnStartTest"
+                class="w-full px-4 py-2 bg-[var(--primary-color)] text-white rounded-xl shadow hover:opacity-90">
+                START TEST
+              </button>
+              <button id="btnEditTest"
+                class="w-full px-4 py-2 bg-gray-200 text-[var(--text-primary)] rounded-xl shadow hover:bg-gray-300">
+                Edit Test
+              </button>
+              <button id="btnDuplicateTest"
+                class="w-full px-4 py-2 bg-gray-100 text-[var(--text-secondary)] rounded-xl shadow hover:bg-gray-200 text-sm">
+                Duplicate Test
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("btnStartTest").addEventListener("click", async () => {
+        // Load the test runner UI into primary area
+  await loadUI("test-runner.html", "testContent");
+
+        // Pass test data to runner after load
+        const tests = loadTests(); // FIX: use loadTests(), not loadTestsFromStorage()
+        const match = tests.find(t => t.id === test.id);
+        if (match && typeof window.startTestRunner === "function") {
+          window.startTestRunner(match);
+        } else if (typeof window.startTestRunner !== "function") {
+          console.error("startTestRunner is not available. Make sure test-runner.js is included.");
+        }
+      });
+
+      const editBtn = document.getElementById("btnEditTest");
+      if (test.locked) {
+        editBtn.disabled = true;
+        editBtn.classList.add('opacity-60','cursor-not-allowed');
+        editBtn.textContent = 'Edit Test (Locked)';
+      }
+      editBtn.addEventListener("click", () => {
+        if (test.locked) return; // block editing locked tests
+  loadUI("test-builder.html", "testContent", "initTestBuilder");
+        setTimeout(() => {
+          const tests = loadTests();
+          const match = tests.find(t => t.id === test.id);
+          if (match && typeof window.loadTestIntoBuilder === "function") {
+            window.loadTestIntoBuilder(match);
+          }
+        }, 200);
+      });
+
+      // Duplicate button
+      const dupBtn = document.getElementById("btnDuplicateTest");
+      if (dupBtn) {
+        dupBtn.addEventListener("click", () => {
+          const tests = loadTests();
+          const src = tests.find(t => t.id === test.id);
+          if (!src) return;
+          const copy = JSON.parse(JSON.stringify(src));
+          copy.id = "test_" + Date.now();
+          copy.name = (copy.name || "Untitled") + " (Copy)";
+          delete copy.locked;
+          tests.push(copy);
+          localStorage.setItem("tests", JSON.stringify(tests));
+          renderTestList();
+          if (typeof renderDashboard === "function") renderDashboard();
+        });
+      }
+    });
+
+    // Delete button
+    li.querySelector("button").addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (confirm("Delete test: " + (test.name || "Untitled Test") + "?")) {
+        deleteTest(test.id);
+      }
+    });
+
+    testListEl.appendChild(li);
+  });
+}
+
+async function loadUI(file, containerId, initFn) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  window.__fpBuilderActive = true;
+  // Try inline template first (works on file:// protocol), fall back to fetch
+  const tpl = document.querySelector('template[data-file="' + file + '"]');
+  if (tpl) {
+    container.innerHTML = tpl.innerHTML;
+    if (initFn && typeof window[initFn] === "function") window[initFn]();
+    return;
+  }
+  try {
+    const resp = await fetch(file);
+    const html = await resp.text();
+    container.innerHTML = html;
+    if (initFn && typeof window[initFn] === "function") {
+      window[initFn]();
+    }
+  } catch(e) {
+    console.error('loadUI fetch failed for ' + file + ':', e);
+    window.__fpBuilderActive = false;
+    container.innerHTML = '<div class="p-8 text-center text-red-600">Failed to load ' + file + '. Try refreshing the page.</div>';
+  }
+}
+
+document.getElementById("btnNewTest").addEventListener("click", () => {
+  loadUI("test-builder.html", "testContent", "initTestBuilder");
+});
+
+// Test Home button: clear selection and render dashboard
+document.getElementById("btnTestHome").addEventListener("click", () => {
+  // Clear selected state
+  window.__selectedTestId = null;
+  window.__fpBuilderActive = false;
+  document.querySelectorAll('#testList .test-item').forEach(n => n.classList.remove('selected'));
+  // Disable export
+  const btnExportTest = document.getElementById('btnExportTest');
+  if (btnExportTest) btnExportTest.disabled = true;
+  // Render dashboard/home
+  if (typeof renderDashboard === 'function') {
+    renderDashboard();
+  } else {
+  const primary = document.getElementById('testContent');
+  if (primary) primary.innerHTML = '<div class="min-h-[46vh] flex items-center justify-center text-gray-500">Home</div>';
+  }
+});
+
+// Wire up Trash All button
+document.getElementById("btnTrashAll").addEventListener("click", deleteAllTests);
+
+document.addEventListener("DOMContentLoaded", () => { try { renderTestList(); } catch(e) { console.error('renderTestList error:', e); } try { if (typeof renderDashboard === 'function') renderDashboard(); } catch(e) { console.error('renderDashboard error:', e); } });
+// Keep selection after re-render
+document.addEventListener("DOMContentLoaded", () => {
+  const observer = new MutationObserver(() => {
+    if (!window.__selectedTestId) return;
+    document.querySelectorAll('#testList .test-item').forEach(n => n.classList.toggle('selected', n.dataset.id === String(window.__selectedTestId)));
+  });
+  const list = document.getElementById('testList');
+  if (list) observer.observe(list, { childList: true });
+});
+</script>
+
+<!-- Inline builder/runner templates (avoids fetch, works on file:// protocol) -->
+<template data-file="test-builder.html">
+<style>
+  .builder-scope input[type="text"],
+  .builder-scope textarea,
+  .builder-scope select { color: var(--text-primary) !important; background: var(--white) !important; }
+  [data-theme="dark"] .builder-scope input[type="text"],
+  [data-theme="dark"] .builder-scope textarea,
+  [data-theme="dark"] .builder-scope select { color: #ffffff !important; background: #1f2937 !important; border-color: #334155 !important; }
+  [data-theme="dark"] #testSubject option { color:#fff !important; background:#1f2937; }
+  #testName::placeholder, #testDesc::placeholder { color: var(--text-secondary) !important; opacity:0.7; }
+  [data-theme="dark"] #testName::placeholder, [data-theme="dark"] #testDesc::placeholder { color:#94a3b8 !important; opacity:0.6; }
+  .builder-scope .btn { transition: opacity .2s ease; }
+  .builder-scope .btn:hover { opacity: .9; }
+  .builder-scope .btn-primary { background: var(--primary-color); color: #fff; }
+  .builder-scope .btn-secondary { background: #e5e7eb; color: var(--text-primary); }
+</style>
+<div class="builder-scope">
+<div class="bg-white rounded-lg shadow p-6 mb-6">
+  <h3 class="text-xl font-semibold text-[var(--text-primary)] mb-4">Test Details</h3>
+  <div class="grid md:grid-cols-4 gap-4 text-sm text-[var(--text-secondary)]">
+    <div>
+      <label class="block font-medium text-[var(--text-primary)] mb-1">Subject</label>
+      <div class="flex gap-2">
+      <select id="testSubject" class="w-full rounded-md border-gray-300">
+        <option value="" disabled selected>Select a Subject</option>
+        <option value="__create">Create New…</option>
+      </select>
+      <div class="flex flex-col gap-1">
+        <button type="button" id="btnManageSubjectsTest" class="px-2 py-1 text-[10px] rounded border border-[var(--border-color)] hover:bg-gray-100">Manage</button>
+        <button type="button" id="btnRemoveSubjectTest" class="px-2 py-1 text-[10px] rounded border border-red-300 text-red-600 hover:bg-red-50 hidden">Remove</button>
+      </div>
+      </div>
+    </div>
+    <div>
+      <label class="block font-medium text-[var(--text-primary)] mb-1">Subject Component</label>
+      <input id="testName" type="text" class="w-full rounded-md border-gray-300" placeholder="e.g. History 101" />
+    </div>
+    <div>
+      <label class="block font-medium text-[var(--text-primary)] mb-1">Description</label>
+      <input id="testDesc" type="text" class="w-full rounded-md border-gray-300" placeholder="Short description..." />
+    </div>
+    <div class="flex items-end justify-end">
+      <button id="btnSaveTest" class="btn btn-primary px-4 py-2 rounded-md">Save Test</button>
+    </div>
+  </div>
+</div>
+<div class="grid lg:grid-cols-3 gap-6">
+  <div class="bg-white rounded-lg shadow p-4 flex flex-col h-[600px]">
+    <div class="flex items-center justify-between mb-3">
+      <h3 class="text-lg font-semibold text-[var(--text-primary)]">Questions</h3>
+      <div class="flex gap-2">
+        <button id="btnAddQuestion" class="px-3 py-1.5 text-xs rounded-md bg-[var(--primary-color)] text-white shadow">+ Question</button>
+        <button id="btnBulkAddQuestions" class="px-3 py-1.5 text-xs rounded-md bg-gray-200 text-[var(--text-primary)] hover:bg-gray-300">Bulk</button>
+      </div>
+    </div>
+    <div id="questionsList" class="flex-1 overflow-y-auto space-y-2 p-2 border rounded-md bg-gray-50 text-sm">
+      <div class="text-[var(--text-secondary)] italic">No questions yet. Use "+ Question".</div>
+    </div>
+  </div>
+  <div class="lg:col-span-2 bg-white rounded-lg shadow p-6 flex flex-col h-[600px]">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-semibold text-[var(--text-primary)]">Question Editor</h3>
+      <div class="flex gap-2">
+        <button id="btnMoveUpQuestion" class="px-2 py-1 text-xs rounded border border-[var(--border-color)] disabled:opacity-40" title="Move Up">↑</button>
+        <button id="btnMoveDownQuestion" class="px-2 py-1 text-xs rounded border border-[var(--border-color)] disabled:opacity-40" title="Move Down">↓</button>
+        <button id="btnDeleteQuestion" class="px-2 py-1 text-xs rounded border border-red-300 text-red-600 disabled:opacity-40" title="Delete">Delete</button>
+      </div>
+    </div>
+    <div id="activeQuestion" class="flex-1 overflow-y-auto pr-2 space-y-4">
+      <div class="text-[var(--text-secondary)] italic">No active question. Add one to begin editing.</div>
+    </div>
+    <div class="mt-6 flex justify-end gap-3">
+      <button id="btnSaveQuestion" class="btn px-4 py-2 rounded-md bg-green-600 text-white">Save Question</button>
+    </div>
+  </div>
+</div>
+</div>
+</template>
+
+<template data-file="test-runner.html">
+<div id="testRunner" class="bg-white rounded-xl shadow p-6 max-w-2xl mx-auto flex flex-col">
+  <h2 class="text-xl font-semibold mb-4">Running Test: <span id="runnerTitle"></span></h2>
+  <div id="runnerContent" class="flex-1 overflow-y-auto"></div>
+  <div class="mt-6 flex justify-between">
+    <button id="btnPrevQ" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Back</button>
+    <button id="btnNextQ" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Next</button>
+  </div>
+</div>
+</template>
+<script src="tools-drawer.js"></script>
+</body>
+</html>
